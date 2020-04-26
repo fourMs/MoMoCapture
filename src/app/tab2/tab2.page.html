@@ -58,7 +58,7 @@
 	      <ion-button (click)="stopCapture($event)" color="danger" size="large">Stop</ion-button>
 	    </ion-col>
 	  </ion-row>
-	  <ion-row responsive-sm [hidden]="!captureOn">
+	  <ion-row responsive-sm [hidden]="!captureOn || isIOS">
 	    <ion-col>
 	      <ion-button (click)="moveToBackground($event)" color="primary">Move to Background</ion-button>
 	    </ion-col>

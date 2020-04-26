@@ -9,6 +9,7 @@ import { Platform } from '@ionic/angular';
 import { UUID } from 'angular2-uuid';
 import { File, FileEntry } from '@ionic-native/file/ngx';
 import { SessionDataService } from '../providers/sessionData.service';
+import { BackgroundGeolocation, BackgroundGeolocationConfig, BackgroundGeolocationEvents, BackgroundGeolocationResponse } from '@ionic-native/background-geolocation/ngx';
 
 import { Subscription } from "rxjs";
 import * as JSZip from "jszip";
@@ -79,6 +80,8 @@ export class Tab2Page {
 	hasGeolocation: boolean = false;
 	deviceMotionList: DeviceMotionType[] = [];
 	geolocationList: GeolocationType[] = [];
+	isIOS: boolean = false;
+
 
   constructor(
   	private zone: NgZone,
@@ -89,7 +92,8 @@ export class Tab2Page {
   	private http: HttpClient,
   	private httpNative: HTTP,
   	private file: File,
-  	private sessionData: SessionDataService
+  	private sessionData: SessionDataService,
+	private backgroundGeolocation: BackgroundGeolocation
   	) {  	
     let self = this;
     this.docEvtDevMotion = (event: DeviceMotionEvent)=>{
@@ -114,6 +118,10 @@ export class Tab2Page {
 	  }).catch((error) => {
 	      this.hasGeolocation = false;
 	  });;
+
+	if (this.platform.is('ios')) {
+		this.isIOS = true;
+	}
   }
 
   checkDeviceMotion(event: DeviceMotionEvent) {
@@ -211,6 +219,35 @@ export class Tab2Page {
 			 });
 		}, 
 		(error: PositionError) => console.log(error));
+
+	const config: BackgroundGeolocationConfig = {
+            desiredAccuracy: 10,
+            stationaryRadius: 20,
+            distanceFilter: 30,
+            debug: false, //  enable this hear sounds for background-geolocation life-cycle.
+            stopOnTerminate: false, // enable this to clear background location settings when the app terminates
+    };
+
+
+this.backgroundGeolocation.configure(config)
+  .then(() => {
+
+    this.backgroundGeolocation.on(BackgroundGeolocationEvents.location).subscribe((location: BackgroundGeolocationResponse) => {
+      console.log(location);
+
+      // IMPORTANT:  You must execute the finish method here to inform the native plugin that you're finished,
+      // and the background-task may be completed.  You must do this regardless if your operations are successful or not.
+      // IF YOU DON'T, ios will CRASH YOUR APP for spending too much time in the background.
+      this.backgroundGeolocation.finish(); // FOR IOS ONLY
+    });
+
+  });
+
+// start recording location
+this.backgroundGeolocation.start();
+
+
+
 	 }
 
 	stopCapture(e: any) {
@@ -224,6 +261,9 @@ export class Tab2Page {
 		  this.backgroundMode.disable();
 		}
 	  this.sendFileHttp();
+
+// If you wish to turn OFF background-tracking, call the #stop method.
+this.backgroundGeolocation.stop();
 	}
 
 	moveToBackground(e: any) {

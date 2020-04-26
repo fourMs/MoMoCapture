@@ -16,6 +16,8 @@ import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { File } from '@ionic-native/file/ngx';
+import { BackgroundGeolocation } from '@ionic-native/background-geolocation/ngx';
+
 
 @NgModule({
   declarations: [AppComponent],
@@ -31,6 +33,7 @@ import { File } from '@ionic-native/file/ngx';
     SplashScreen,
     Geolocation,
     BackgroundMode,
+BackgroundGeolocation,
     NativeStorage,
     SessionDataService,
     File,
