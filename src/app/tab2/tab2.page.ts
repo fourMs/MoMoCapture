@@ -190,13 +190,14 @@ export class Tab2Page {
 		if(this.hasDeviceMotion) {
 			window.addEventListener("devicemotion", this.docEvtDevMotion, false);
 		}
-		let watch = this.geolocation.watchPosition({ maximumAge: 3000, timeout: 5000, enableHighAccuracy: false });
+		let watch = this.geolocation.watchPosition({ maximumAge: 3000, timeout: 2000, enableHighAccuracy: false });
 		this.geoSubscription = watch.subscribe((data: Position) => {
 			 if(Object.prototype.toString.call(data) === "[object PositionError]") {  
-			 	console.log(data); 
+			 	console.log("watch.subscribe: " + data); 
 			 	return;
 			 }
-			 //console.log(data);
+			 // console.log("watch.subscribe: " + data);
+			 console.log("watch.subscribe: " + 'lat: ' + data.coords.latitude + ', lon: ' + data.coords.longitude);
 			 this.countGPSReading++;
 			 this.geo.latitude = parseFloat(data.coords.latitude.toFixed(4));
 			 this.geo.longitude = parseFloat(data.coords.longitude.toFixed(4));
@@ -272,19 +273,20 @@ export class Tab2Page {
 
     this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";
 
-    this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
-        (response) => {
-			    console.log(response.status);
-			    console.log(JSON.parse(response.data)); // JSON data returned by server
-			    console.log(response.headers);
-			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
-        },
-        (err) => {
-			    console.error(err.status);
-			    console.error(err.error); // Error message as string
-			    console.error(err.headers);
-			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
-			});
+//    this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
+//        (response) => {
+//			    console.log(response.status);
+//			    console.log(JSON.parse(response.data)); // JSON data returned by server
+//			    console.log(response.headers);
+//			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
+//        },
+//        (err) => {
+//			    console.error(err.status);
+//			    console.error(err.error); // Error message as string
+//			    console.error(err.headers);
+//			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
+//			});
+//
 
 	}
 
