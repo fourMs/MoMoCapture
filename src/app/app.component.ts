@@ -7,6 +7,10 @@ import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { UUID } from 'angular2-uuid';
 import { SessionDataService } from './providers/sessionData.service';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
+import { HTTP } from '@ionic-native/http/ngx';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+type requestMethod = "head" | "get" | "post" | "put" | "patch" | "delete" | "options" | "upload" | "download";
 
 @Component({
   selector: 'app-root',
@@ -20,7 +24,9 @@ export class AppComponent {
     private statusBar: StatusBar,
     private nativeStorage: NativeStorage,
     private sessionData: SessionDataService,
-    private backgroundMode: BackgroundMode
+    private backgroundMode: BackgroundMode,
+    public http: HttpClient,
+    private httpNative: HTTP
   ) {
     this.initializeApp();
   }
@@ -65,9 +71,51 @@ export class AppComponent {
         this.backgroundMode.on("failure").subscribe(() => {
            this.sessionData.backgroundMode += new Date().toLocaleString() + ": failure\n";
         });
+
+        var thisMethod: requestMethod = 'get';
+        var options = { method: thisMethod };
+
+        this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema.txt', options).then(
+            (response) => {
+              this.sessionData.preFormId = response.data[0];
+              this.sessionData.postFormId = response.data[1];
+              console.log(response.status);
+              console.log(JSON.parse(response.data)); // JSON data returned by server
+              console.log(response.headers);
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
+            },
+            (err) => {
+              console.error(err.status);
+              console.error(err.error); // Error message as string
+              console.error(err.headers);
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
+          });
+
       } else {
         this.sessionData.uuid = UUID.UUID();
+
+        const httpOptions = {
+          headers: new HttpHeaders({
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Access-Control-Allow-Origin': '*'
+          })
+        };
+        this.http.get('assets/data/musiclab_app_nettskjema.txt').subscribe(
+            response => {
+              this.sessionData.preFormId = response[0];
+              this.sessionData.postFormId = response[1];
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
+            },
+            error => {
+              console.error(error.status);
+              console.error(error.error); // Error message as string
+              console.error(error.headers);
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + error.status + "\n" + error.error  + "\n" ;
+            }
+          );
       }
+
+
     });
   }
 }

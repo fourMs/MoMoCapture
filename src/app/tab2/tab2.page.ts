@@ -9,6 +9,7 @@ import { Platform } from '@ionic/angular';
 import { UUID } from 'angular2-uuid';
 import { File, FileEntry } from '@ionic-native/file/ngx';
 import { SessionDataService } from '../providers/sessionData.service';
+import { PowerManagement } from '@ionic-native/power-management/ngx';
 
 import { Subscription } from "rxjs";
 import * as JSZip from "jszip";
@@ -79,6 +80,7 @@ export class Tab2Page {
 	hasGeolocation: boolean = false;
 	deviceMotionList: DeviceMotionType[] = [];
 	geolocationList: GeolocationType[] = [];
+	isIOS: boolean = false;
 
   constructor(
   	private zone: NgZone,
@@ -89,7 +91,8 @@ export class Tab2Page {
   	private http: HttpClient,
   	private httpNative: HTTP,
   	private file: File,
-  	private sessionData: SessionDataService
+  	private sessionData: SessionDataService,
+  	private powerManagement: PowerManagement
   	) {  	
     let self = this;
     this.docEvtDevMotion = (event: DeviceMotionEvent)=>{
@@ -114,6 +117,10 @@ export class Tab2Page {
 	  }).catch((error) => {
 	      this.hasGeolocation = false;
 	  });;
+
+	if (this.platform.is('ios')) {
+		this.isIOS = true;
+	}
   }
 
   checkDeviceMotion(event: DeviceMotionEvent) {
@@ -183,7 +190,8 @@ export class Tab2Page {
 			});
 			this.backgroundMode.enable();
 		}
-	  this.captureOn = true;
+	    this.turnOnWakeLock();
+	    this.captureOn = true;
 		this.dateStart = new Date();
 		this.countMotionReading = 0;
 		this.countGPSReading = 0;
@@ -213,11 +221,12 @@ export class Tab2Page {
 	 }
 
 	stopCapture(e: any) {
-		//window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
-		if(this.hasDeviceMotion) {
-			window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
-		}
-		this.geoSubscription.unsubscribe();
+	  //window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
+	  if(this.hasDeviceMotion) {
+	    window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
+	  }
+	  this.geoSubscription.unsubscribe();
+	  this.turnOffWakeLock();
 	  this.captureOn = false;
 	  if (this.platform.is('cordova')) {
 		  this.backgroundMode.disable();
@@ -287,5 +296,21 @@ export class Tab2Page {
 			});
 
 	}
+
+  turnOnWakeLock() {
+    this.powerManagement.dim().then(() => {
+    	this.sessionData.wakeLock += new Date().toLocaleString() + ": Wakelock acquired\n";
+    }).catch(() => {
+    	this.sessionData.wakeLock += new Date().toLocaleString() + ": Failed to acquire wakelock\n";
+    });
+  }
+
+  turnOffWakeLock() {
+    this.powerManagement.release().then(() => {
+    	this.sessionData.wakeLock += new Date().toLocaleString() + ": Wakelock released\n";
+    }).catch(() => {
+    	this.sessionData.wakeLock += new Date().toLocaleString() + ": Failed to release wakelock\n";
+    });
+  }
 
 }

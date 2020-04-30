@@ -7,6 +7,7 @@ import { HTTP } from '@ionic-native/http/ngx';
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { PowerManagement } from '@ionic-native/power-management/ngx';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -23,12 +24,13 @@ import { File } from '@ionic-native/file/ngx';
   imports: [
   	BrowserModule, 
     HttpClientModule,
-  	IonicModule.forRoot(), 
+  	IonicModule.forRoot({animated: false}), 
   	AppRoutingModule
   	],
   providers: [
     StatusBar,
     SplashScreen,
+    PowerManagement,
     Geolocation,
     BackgroundMode,
     NativeStorage,

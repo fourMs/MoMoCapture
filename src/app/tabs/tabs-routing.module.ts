@@ -28,6 +28,16 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'form/:type',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('../form/form.module').then(m => m.FormPageModule)
+          }
+        ]
+      },
+      {
         path: '',
         redirectTo: '/tabs/tab2',
         pathMatch: 'full'
