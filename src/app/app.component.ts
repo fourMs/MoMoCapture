@@ -77,17 +77,12 @@ export class AppComponent {
 
         this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema.txt', options).then(
             (response) => {
-              this.sessionData.preFormId = response.data[0];
-              this.sessionData.postFormId = response.data[1];
-              console.log(response.status);
-              console.log(JSON.parse(response.data)); // JSON data returned by server
-              console.log(response.headers);
+              let data = JSON.parse(response.data);
+              this.sessionData.preFormId = data[0];
+              this.sessionData.postFormId = data[1];
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
             },
             (err) => {
-              console.error(err.status);
-              console.error(err.error); // Error message as string
-              console.error(err.headers);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
           });
 
@@ -107,9 +102,6 @@ export class AppComponent {
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
             error => {
-              console.error(error.status);
-              console.error(error.error); // Error message as string
-              console.error(error.headers);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + error.status + "\n" + error.error  + "\n" ;
             }
           );

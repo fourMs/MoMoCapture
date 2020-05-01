@@ -1,6 +1,8 @@
 // Ionic Variables and Theming. For more info, please see:
 // http://ionicframework.com/docs/theming/
 
+@import "../../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
+
 /** Ionic CSS Variables **/
 :root {
   /** primary **/
@@ -74,4 +76,29 @@
   --ion-color-light-contrast-rgb: 0, 0, 0;
   --ion-color-light-shade: #d7d8da;
   --ion-color-light-tint: #f5f6f9;
+}
+
+
+.form-momo .mat-form-field .mat-form-field-infix {
+  width: auto;
+}
+
+.form-momo .mat-form-field {
+  display: inline;
+}
+
+.form-momo .ng-dynamic-forms-radio_group {
+  margin-top: 10px; 
+}
+
+.form-momo .ng-dynamic-forms-checkbox_group {
+  margin-top: 10px; 
+}
+
+.form-momo .mat-radio-button {
+  display: inline;
+  line-height: 25px;
+}
+
+.form-momo .mat-radio-group {
 }

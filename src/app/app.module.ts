@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { HTTP } from '@ionic-native/http/ngx';
+import 'hammerjs';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
@@ -18,6 +19,11 @@ import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { File } from '@ionic-native/file/ngx';
 
+import { DynamicFormsIonicUIModule } from "@ng-dynamic-forms/ui-ionic";
+import { DynamicFormsMaterialUIModule } from "@ng-dynamic-forms/ui-material";
+import { ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
@@ -25,7 +31,10 @@ import { File } from '@ionic-native/file/ngx';
   	BrowserModule, 
     HttpClientModule,
   	IonicModule.forRoot({animated: false}), 
-  	AppRoutingModule
+  	AppRoutingModule,
+    ReactiveFormsModule,
+    DynamicFormsMaterialUIModule,
+    BrowserAnimationsModule
   	],
   providers: [
     StatusBar,
