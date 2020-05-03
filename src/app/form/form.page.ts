@@ -11,7 +11,8 @@ import {
     DynamicCheckboxModel,
     DynamicInputModel,
     DynamicCheckboxGroupModel,
-    DynamicRadioGroupModel
+    DynamicRadioGroupModel,
+    AUTOCOMPLETE_OFF
 } from "@ng-dynamic-forms/core";
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 
@@ -44,6 +45,7 @@ export class FormPage implements OnInit {
   formModel: DynamicFormModel;
   formGroup: FormGroup;
   showForm: boolean = false;
+  isSubmittingForm: boolean = false;
 
   constructor(
   	private platform: Platform,
@@ -65,61 +67,7 @@ export class FormPage implements OnInit {
       this.formId = this.sessionData.postFormId;
       this.myResponse = this.sessionData.postFormObject;
     }
-  	if (this.platform.is('cordova')) {
-
-        if(this.myResponse == null) {
-          var thisMethod: requestMethod = 'get';
-          var options = { method: thisMethod };
-          this.httpNative.sendRequest('https://nettskjema.no/answer/answer.json?formId='+this.formId, options).then(
-              (response) => {
-                this.myResponse = JSON.parse(response.data);
-                if(this.formType == 'pre') {
-                  this.sessionData.preFormObject = this.myResponse;
-                }
-                if(this.formType == 'post') {
-                  this.sessionData.postFormObject = this.myResponse;
-                }
-                this.processForm();
-                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + this.formType + "Form load:" + response.status.toString() + "\n";
-              },
-              (err) => {
-                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + this.formType + "Form load error:" + err.status + "\n" ;
-            });
-        } else {
-          this.processForm();
-        }
-
-
-  	} else {
-
-        if(this.myResponse == null) {
-          const httpOptions = {
-            headers: new HttpHeaders({
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Access-Control-Allow-Origin': '*'
-            })
-          };
-          this.http.get('assets/data/' + this.formId + '_answer.json').subscribe(
-              response => {
-                this.myResponse = response;
-                if(this.formType == 'pre') {
-                  this.sessionData.preFormObject = response;
-                }
-                if(this.formType == 'post') {
-                  this.sessionData.postFormObject = response;
-                }
-                this.processForm();
-                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + this.formType + "Form load: ok\n";
-              },
-              error => {
-                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + this.formType + "Form load: error\n" ;
-              }
-          );
-        } else {
-          this.processForm();
-        }
-  	}
-
+    this.processForm();
   }
 
   formSpec(answerJson) {
@@ -152,15 +100,20 @@ export class FormPage implements OnInit {
   	this.title = this.myResponse.form.title;
     this.formModel = [];
     this.myFormSpec = this.formSpec(this.myResponse)
-    console.log(this.myFormSpec);
+    let userIDinputModelID = null;
     let newModel = null;
     //this.changeDetectorRef.detach();
     for (var question of this.myFormSpec.fields) {
       if(question.type == 'text') {
         newModel = new DynamicInputModel({
                 id: "_"+question.id,
-                label: question.name
+                label: question.name,
+                autoComplete: AUTOCOMPLETE_OFF
           });
+        if(question.name == 'userID') {
+          newModel.value = this.sessionData.uuid;
+          userIDinputModelID = "_"+question.id;
+        }
       }
       if(question.type == 'checkbox') {
         newModel = new DynamicCheckboxGroupModel({
@@ -202,6 +155,10 @@ export class FormPage implements OnInit {
     this.formGroup = this.formService.createFormGroup(this.formModel);
     this.showForm = true;
     this.changeDetectorRef.detectChanges();
+    if(userIDinputModelID) {
+      const userIDinputModel = this.formService.findModelById<DynamicInputModel>(userIDinputModelID, this.formModel);
+      userIDinputModel.disabled = true;
+    }
   }
 
   decodeHtml(html) {
@@ -211,6 +168,14 @@ export class FormPage implements OnInit {
   }
 
   onSubmit() {
+    this.isSubmittingForm = true;
+    if (!this.platform.is('cordova')) {
+      window.setTimeout(() => {
+        alert("Form submitted successfully!");
+        this.isSubmittingForm = false;
+      }, 2000);
+      return;
+    }
     const form = new cordova.plugin.http.ponyfills.FormData();
     for (var questionId in this.formGroup.value) {
       let id = questionId.replace("_","");
@@ -249,12 +214,16 @@ export class FormPage implements OnInit {
           console.log(response.status);
           console.log(JSON.parse(response.data)); // JSON data returned by server
           console.log(response.headers);
+          alert("Form submitted successfully!");
+          this.isSubmittingForm = false;
           this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
         },
         (err) => {
           console.error(err.status);
           console.error(err.error); // Error message as string
           console.error(err.headers);
+          alert("Error submitting the form!");
+          this.isSubmittingForm = false;
           this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
       });
 

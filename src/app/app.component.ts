@@ -72,6 +72,18 @@ export class AppComponent {
            this.sessionData.backgroundMode += new Date().toLocaleString() + ": failure\n";
         });
 
+        this.loadFormsID(true);
+      } else {
+        this.loadFormsID(false);
+      }
+
+
+    });
+  }
+
+  loadFormsID(isCordova) {
+    if(isCordova) {
+
         var thisMethod: requestMethod = 'get';
         var options = { method: thisMethod };
 
@@ -80,13 +92,14 @@ export class AppComponent {
               let data = JSON.parse(response.data);
               this.sessionData.preFormId = data[0];
               this.sessionData.postFormId = data[1];
+              this.loadFormsContent(data);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
             },
             (err) => {
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
           });
 
-      } else {
+    } else {
         this.sessionData.uuid = UUID.UUID();
 
         const httpOptions = {
@@ -99,6 +112,7 @@ export class AppComponent {
             response => {
               this.sessionData.preFormId = response[0];
               this.sessionData.postFormId = response[1];
+              this.loadFormsContent(response);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
             error => {
@@ -106,8 +120,59 @@ export class AppComponent {
             }
           );
       }
-
-
-    });
   }
+
+  loadFormsContent(formIds: any) {
+    for (var i = 0; i < 2; i++) {
+      if (this.platform.is('cordova')) {
+          var thisMethod: requestMethod = 'get';
+          var options = { method: thisMethod };
+          this.httpNative.sendRequest('https://nettskjema.no/answer/answer.json?formId='+formIds[i], options).then(
+              (response) => {
+                let myResponse = JSON.parse(response.data);
+                let formType = "none";
+                if(myResponse.form.formId == this.sessionData.preFormId) {
+                  this.sessionData.preFormObject = myResponse;
+                  formType = "pre";
+                }
+                if(myResponse.form.formId == this.sessionData.postFormId) {
+                  this.sessionData.postFormObject = myResponse;
+                  formType = "post";
+                }
+                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + formType + "Form load:" + response.status.toString() + "\n";
+              },
+              (err) => {
+                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + "Form load error:" + err.status + "\n" ;
+            });
+      } else {
+        // Load Example forms
+          const httpOptions = {
+            headers: new HttpHeaders({
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Access-Control-Allow-Origin': '*'
+            })
+          };
+          this.http.get('assets/data/' + formIds[i] + '_answer.json').subscribe(
+              response => {
+                let myResponse:any = response;
+                let formType = "none";
+                if(myResponse.form.formId == this.sessionData.preFormId) {
+                  this.sessionData.preFormObject = myResponse;
+                  formType = "pre";
+                }
+                if(myResponse.form.formId == this.sessionData.postFormId) {
+                  this.sessionData.postFormObject = myResponse;
+                  formType = "post";
+                }
+                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + formType + "Form load: ok\n";
+              },
+              error => {
+                this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + "Form load: error\n" ;
+              }
+          );
+      } // end if
+    } // end for
+  } // end loadFormsContent
+
+
 }

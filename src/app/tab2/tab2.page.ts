@@ -286,12 +286,14 @@ export class Tab2Page {
 			    console.log(response.status);
 			    console.log(JSON.parse(response.data)); // JSON data returned by server
 			    console.log(response.headers);
+			    alert("Data sent successfully!");
 			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
         },
         (err) => {
 			    console.error(err.status);
 			    console.error(err.error); // Error message as string
 			    console.error(err.headers);
+			    alert("Error sending data!");
 			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
 			});
 

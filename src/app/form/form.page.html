@@ -12,7 +12,7 @@
 
 				<form (ngSubmit)="onSubmit()" class="form-momo" *ngIf="showForm" [formGroup]="formGroup">
 				    <dynamic-material-form [group]="formGroup" [model]="formModel"></dynamic-material-form>
-				    <ion-button *ngIf="showForm" [disabled]="!formGroup.valid"  type="submit">Submit</ion-button>
+				    <ion-button *ngIf="showForm" [disabled]="!formGroup.valid || isSubmittingForm"  type="submit">Submit</ion-button>
 				</form>
 
 			</ion-col>
