@@ -110,5 +110,7 @@
     <plugin name="cordova-plugin-advanced-http" spec="^2.4.1">
         <variable name="OKHTTP_VERSION" value="3.10.0" />
     </plugin>
+    <plugin name="at.gofg.sportscomputer.powermanagement" spec="https://github.com/Viras-/cordova-plugin-powermanagement.git" />
     <engine name="android" spec="^8.0.0" />
+    <engine name="ios" spec="^5.1.1" />
 </widget>
