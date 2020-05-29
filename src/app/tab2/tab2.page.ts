@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Injectable, NgZone } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
@@ -60,7 +60,7 @@ declare const cordova: any;
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss']
 })
-export class Tab2Page {
+export class Tab2Page implements OnInit {
 
 	private docEvtDevMotion:EventListenerOrEventListenerObject = null;
 	private docEvtDevMotionAux:EventListenerOrEventListenerObject = null;
@@ -81,6 +81,7 @@ export class Tab2Page {
 	deviceMotionList: DeviceMotionType[] = [];
 	geolocationList: GeolocationType[] = [];
 	isIOS: boolean = false;
+	isIOSMotion: boolean = false;
 
   constructor(
   	private zone: NgZone,
@@ -105,6 +106,13 @@ export class Tab2Page {
     if(_window.DeviceMotionEvent) {
     	this.hasDeviceMotion = true;
     }
+  }
+
+  ngOnInit() {
+       this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
+       if(this.isIOSMotion) {
+       	 this.requestDeviceOrientationIOS();
+       }
   }
 
   ionViewDidEnter() {
@@ -313,6 +321,24 @@ export class Tab2Page {
     }).catch(() => {
     	this.sessionData.wakeLock += new Date().toLocaleString() + ": Failed to release wakelock\n";
     });
+  }
+
+  // for requesting permission on iOS 13 devices
+  // requesting device orientation permission
+  requestDeviceOrientationIOS() {
+    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+      (DeviceOrientationEvent as any).requestPermission()
+        .then((permissionState: 'granted' | 'denied' | 'default') => {
+          if (permissionState === 'granted') {
+    		if(this.hasDeviceMotion) {
+				window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
+			}
+          }
+        })
+        .catch(console.error);
+    } else {
+      // handle regular non iOS 13+ devices
+    }
   }
 
 }

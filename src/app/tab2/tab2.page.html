@@ -19,6 +19,11 @@
 	      <ion-button (click)="getGeolocation($event)" color="primary">Check Geolocation</ion-button>
 	    </ion-col>
 	  </ion-row>
+	  <ion-row responsive-sm [hidden]="captureOn || !isIOSMotion">
+	    <ion-col>
+	      <ion-button (click)="requestDeviceOrientationIOS()" color="primary">Check Sensors</ion-button>
+	    </ion-col>
+	  </ion-row>
 	  <ion-row responsive-sm [hidden]="captureOn">
 	    <ion-col>
 	      <ion-list>

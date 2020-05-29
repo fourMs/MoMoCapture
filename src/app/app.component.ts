@@ -18,6 +18,7 @@ type requestMethod = "head" | "get" | "post" | "put" | "patch" | "delete" | "opt
   styleUrls: ['app.component.scss']
 })
 export class AppComponent {
+
   constructor(
     private platform: Platform,
     private splashScreen: SplashScreen,
@@ -176,6 +177,5 @@ export class AppComponent {
       } // end if
     } // end for
   } // end loadFormsContent
-
 
 }
