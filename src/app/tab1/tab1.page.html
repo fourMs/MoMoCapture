@@ -1,60 +1,8 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>
-      Debug Info
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>User</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="white-space-pre-line">
-          {{sessionData.uuid}}
-        </div>
-      </ion-card-content>
-    </ion-card>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Background Mode</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="white-space-pre-line">
-          {{sessionData.backgroundMode}}
-        </div>
-      </ion-card-content>
-    </ion-card>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>ScreenOn Mode</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="white-space-pre-line">
-          {{sessionData.wakeLock}}
-        </div>
-      </ion-card-content>
-    </ion-card>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>HTTP Request</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="white-space-pre-line">
-          {{sessionData.httpRequest}}
-        </div>
-      </ion-card-content>
-    </ion-card>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>HTTP Response</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="white-space-pre-line">
-          {{sessionData.httpResponse}}
-        </div>
-      </ion-card-content>
-    </ion-card>
-</ion-content>
+ <ion-grid style="height: 100%">
+    <ion-row class="ion-align-items-center ion-justify-content-center" style="height: 100%; flex-direction: column">
+      <div class="ion-text-center">
+        <h4>Loading Assets...</h4>
+        <ion-spinner></ion-spinner>
+      </div>
+    </ion-row>
+  </ion-grid>

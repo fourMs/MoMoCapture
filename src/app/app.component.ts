@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-
+import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
@@ -26,7 +26,8 @@ export class AppComponent {
     private sessionData: SessionDataService,
     private backgroundMode: BackgroundMode,
     public http: HttpClient,
-    private httpNative: HTTP
+    private httpNative: HTTP,
+    private router: Router
   ) {
     this.initializeApp();
   }
@@ -134,6 +135,7 @@ export class AppComponent {
                 if(myResponse.form.formId == this.sessionData.preFormId) {
                   this.sessionData.preFormObject = myResponse;
                   formType = "pre";
+                  this.router.navigateByUrl('/tabs', { replaceUrl: true });
                 }
                 if(myResponse.form.formId == this.sessionData.postFormId) {
                   this.sessionData.postFormObject = myResponse;
@@ -159,6 +161,7 @@ export class AppComponent {
                 if(myResponse.form.formId == this.sessionData.preFormId) {
                   this.sessionData.preFormObject = myResponse;
                   formType = "pre";
+                  this.router.navigateByUrl('/tabs', { replaceUrl: true });
                 }
                 if(myResponse.form.formId == this.sessionData.postFormId) {
                   this.sessionData.postFormObject = myResponse;

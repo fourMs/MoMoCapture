@@ -12,6 +12,7 @@ import {
     DynamicInputModel,
     DynamicCheckboxGroupModel,
     DynamicRadioGroupModel,
+    DynamicTextAreaModel,
     AUTOCOMPLETE_OFF
 } from "@ng-dynamic-forms/core";
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
@@ -29,6 +30,7 @@ const fieldTypes = {
   'SELECT': 'radio',
   'QUESTION': 'text',
   'QUESTION_MULTILINE': 'text',
+  'TEXT': 'html'
 }
 
 @Component({
@@ -73,9 +75,19 @@ export class FormPage implements OnInit {
   formSpec(answerJson) {
     const { form: { pages } } = answerJson
     const allElements = pages.reduce((a, b) => [...a, ...b.elements], [])
-    const allQuestions = allElements.reduce((a, b) => [...a, ...(
+    const allQuestions = allElements.reduce((a, b) => {
+      if(b.elementType == "TEXT") {
+        b.questions = new Array({
+          questionId: b.elementId,
+          text: b.description,
+          mandatory: false,
+          answerOptions: []
+        });
+      }
+      return [...a, ...(
       b.questions.map(question => ({...question, type: fieldTypes[b.elementType] || 'unknown' }))
-    )], [])
+    )];
+    }, [])
     const questionFields = allQuestions.map(question => {
       const options = question.answerOptions.length > 0 ? {
         options: question.answerOptions.map(option => ({
@@ -102,7 +114,6 @@ export class FormPage implements OnInit {
     this.myFormSpec = this.formSpec(this.myResponse)
     let userIDinputModelID = null;
     let newModel = null;
-    //this.changeDetectorRef.detach();
     for (var question of this.myFormSpec.fields) {
       if(question.type == 'text') {
         newModel = new DynamicInputModel({
@@ -146,6 +157,21 @@ export class FormPage implements OnInit {
                   }
           )
         }
+      }
+      if(question.type == 'html') {
+        newModel = new DynamicRadioGroupModel({
+                id: "_"+question.id,
+                label: question.name
+          });
+        //  newModel.layout =  {       
+        //    element: {
+        //     control: "textarea-element-control",
+        //     label: "textarea-element-label"
+        // },
+        // grid: {
+        //     control: "textarea-grid-control",
+        //     label: "textarea-grid-label"
+        // }}
       }
       if(question.required) {
         newModel.required = true;
