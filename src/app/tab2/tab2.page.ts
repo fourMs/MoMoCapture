@@ -51,6 +51,14 @@ export interface DeviceMotionType {
   gamma: number;
 }
 
+export interface DeviceOrientationType {
+  timestamp: number;
+  time: number;
+  alpha: number;
+  beta: number;
+  gamma: number;
+}
+
 type requestMethod = "head" | "get" | "post" | "put" | "patch" | "delete" | "options" | "upload" | "download";
 
 declare const cordova: any;
@@ -64,6 +72,8 @@ export class Tab2Page implements OnInit {
 
 	private docEvtDevMotion:EventListenerOrEventListenerObject = null;
 	private docEvtDevMotionAux:EventListenerOrEventListenerObject = null;
+        private docEvtDevOrient:EventListenerOrEventListenerObject = null;
+        private docEvtDevOrientAux:EventListenerOrEventListenerObject = null;
 	private geoSubscription: Subscription;
 	captureOn: boolean = false;
 	acc: AccelerationType = {x:0, y:0, z:0};
@@ -73,6 +83,7 @@ export class Tab2Page implements OnInit {
 	readFrequency: number;
 	dateStart: Date;
 	countMotionReading: number;
+        countOrientationReading: number;
 	countGPSReading: number;
 	hasDeviceMotion: boolean = false;
 	hasAccelerometer: boolean = false;
@@ -80,7 +91,9 @@ export class Tab2Page implements OnInit {
 	hasGeolocation: boolean = false;
 	deviceMotionList: DeviceMotionType[] = [];
 	geolocationList: GeolocationType[] = [];
+        deviceOrientationList: DeviceOrientationType[] = [];
 	isIOS: boolean = false;
+	isIOS13: boolean = false;
 	isIOSMotion: boolean = false;
 
   constructor(
@@ -102,6 +115,12 @@ export class Tab2Page implements OnInit {
     this.docEvtDevMotionAux = (event: DeviceMotionEvent)=>{
         self.checkDeviceMotion(event);
     }
+    this.docEvtDevOrientAux = (event: DeviceOrientationEvent)=>{
+        self.checkDeviceOrientation(event);
+    }
+    this.docEvtDevOrient = (event: DeviceOrientationEvent)=>{
+        self.processOrientationEvent(event);
+    }
     let _window: any = window;
     if(_window.DeviceMotionEvent) {
     	this.hasDeviceMotion = true;
@@ -111,7 +130,7 @@ export class Tab2Page implements OnInit {
   ngOnInit() {
        this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
        if(this.isIOSMotion) {
-       	 this.requestDeviceOrientationIOS();
+       	 this.requestPermissionIOS();
        }
   }
 
@@ -132,18 +151,63 @@ export class Tab2Page implements OnInit {
   }
 
   checkDeviceMotion(event: DeviceMotionEvent) {
+console.log('checkDeviceMotion in');
 		this.zone.run(() => {
+console.log(JSON.stringify(event));
+console.log(this.hasDeviceMotion);
 		    if(event.accelerationIncludingGravity.x) {
 			    this.hasAccelerometer = true;
 		  	}
-		  	if(event.rotationRate.alpha) {
+		  	if(event.rotationRate == null) {
+		  	  this.isIOS13 = true;
+		  	} else if (event.rotationRate.alpha) {
 			    this.hasGyroscope = true;
 		  	}
 			if(this.hasDeviceMotion) {
+console.log('removing motion listener');
 				window.removeEventListener("devicemotion", this.docEvtDevMotionAux, false);
 			}
 		});
 	}
+
+
+  checkDeviceOrientation(event: DeviceOrientationEvent) {
+console.log('checkDeviceOrientation in');
+		this.zone.run(() => {
+console.log(JSON.stringify(event));
+console.log(this.hasDeviceMotion);
+		  	if(event.alpha) {
+			    this.hasGyroscope = true;
+		  	}
+			if(this.hasDeviceMotion) {
+console.log('removing orientation listener');
+				window.removeEventListener("deviceorientation", this.docEvtDevOrientAux, false);
+			}
+		});
+	}
+
+        processOrientationEvent(event: DeviceOrientationEvent) {
+		this.zone.run(() => {
+
+		   var currentTime: number = new Date().getTime();
+		   this.countOrientationReading++;
+
+	  	if(event && event.alpha) {
+		    this.rot.alpha = parseFloat(event.alpha.toFixed(4));
+		    this.rot.beta = parseFloat(event.beta.toFixed(4));
+		    this.rot.gamma = parseFloat(event.gamma.toFixed(4));
+	  	}
+
+	  	this.deviceOrientationList.push({
+	  			timestamp: currentTime,
+	  		        time: event.timeStamp,
+				alpha: event.alpha,
+				beta: event.beta,
+				gamma: event.gamma
+	  		});
+
+		});       
+        }
 
 	processEvent(event: DeviceMotionEvent) {
 	  //console.log(event);
@@ -162,10 +226,17 @@ export class Tab2Page implements OnInit {
 		    this.acc.z = parseFloat(event.accelerationIncludingGravity.z.toFixed(4));
 	  	}
 
-	  	if(event.rotationRate.alpha) {
+		let alpha = 0;
+                let beta = 0;
+                let gamma = 0;
+
+	  	if(event.rotationRate && event.rotationRate.alpha) {
 		    this.rot.alpha = parseFloat(event.rotationRate.alpha.toFixed(4));
 		    this.rot.beta = parseFloat(event.rotationRate.beta.toFixed(4));
 		    this.rot.gamma = parseFloat(event.rotationRate.gamma.toFixed(4));
+		    alpha = event.rotationRate.alpha;
+		    beta = event.rotationRate.beta;
+		    gamma = event.rotationRate.gamma;
 	  	}
 
 	  	this.deviceMotionList.push({
@@ -174,9 +245,9 @@ export class Tab2Page implements OnInit {
 				x: event.accelerationIncludingGravity.x,
 				y: event.accelerationIncludingGravity.y,
 				z: event.accelerationIncludingGravity.z,
-				alpha: event.rotationRate.alpha,
-				beta: event.rotationRate.beta,
-				gamma: event.rotationRate.gamma
+				alpha: alpha,
+				beta: beta,
+				gamma: gamma
 	  	});
 
 		});
@@ -202,9 +273,13 @@ export class Tab2Page implements OnInit {
 	    this.captureOn = true;
 		this.dateStart = new Date();
 		this.countMotionReading = 0;
+		this.countOrientationReading = 0;
 		this.countGPSReading = 0;
 		if(this.hasDeviceMotion) {
 			window.addEventListener("devicemotion", this.docEvtDevMotion, false);
+		}
+		if(this.isIOS13) {
+			window.addEventListener("deviceorientation", this.docEvtDevOrient, false);
 		}
 		let watch = this.geolocation.watchPosition({ maximumAge: 3000, timeout: 5000, enableHighAccuracy: false });
 		this.geoSubscription = watch.subscribe((data: Position) => {
@@ -232,6 +307,9 @@ export class Tab2Page implements OnInit {
 	  //window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
 	  if(this.hasDeviceMotion) {
 	    window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
+	  }
+	  if(this.isIOS13) {
+	    window.removeEventListener("deviceorientation", this.docEvtDevOrient, false);
 	  }
 	  this.geoSubscription.unsubscribe();
 	  this.turnOffWakeLock();
@@ -267,7 +345,7 @@ export class Tab2Page implements OnInit {
 		let csv = array.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));
 		csv.unshift(header.join(','));
 		let csvString = csv.join('\r\n');
-		//console.log(csvString);
+		// console.log(csvString);
 		return(csvString);
 	}
 
@@ -275,10 +353,12 @@ export class Tab2Page implements OnInit {
 	   var zip = new JSZip();
 	    zip.file(this.sessionData.uuid + '.deviceMotion.csv', this.arrayToCSV(this.deviceMotionList));
 	    if(this.geolocationList.length > 0)
-	    	zip.file(this.sessionData.uuid + '.geoLocation.csv', this.arrayToCSV(this.geolocationList));
+	    	zip.file(this.sessionData.uuid +  '.geoLocation.csv', this.arrayToCSV(this.geolocationList));
+	    if(this.isIOS13 && this.deviceOrientationList.length > 0) {
+                zip.file(this.sessionData.uuid +  '.deviceOrientation.csv', this.arrayToCSV(this.deviceOrientationList));
+	     }
 
     var zipfile = await zip.generateAsync({ type: "blob" });
-
 
     const form = new cordova.plugin.http.ponyfills.FormData()
     form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
@@ -324,19 +404,43 @@ export class Tab2Page implements OnInit {
   }
 
   // for requesting permission on iOS 13 devices
+  requestPermissionIOS() {
+    this.requestDeviceMotionIOS();
+    this.requestDeviceOrientationIOS();
+  }
+
+  // requesting device orientation permission
+  requestDeviceMotionIOS() {
+    if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+      (DeviceMotionEvent as any).requestPermission()
+        .then((permissionState: 'granted' | 'denied' | 'default') => {
+          if (permissionState === 'granted') {
+        this.hasDeviceMotion = true;
+				window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
+			alert('motion access granted');
+          }
+        })
+        .catch(console.error);
+    } else {
+			console.log('motion access not granted');
+      // handle regular non iOS 13+ devices
+    }
+  }
+
   // requesting device orientation permission
   requestDeviceOrientationIOS() {
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
       (DeviceOrientationEvent as any).requestPermission()
         .then((permissionState: 'granted' | 'denied' | 'default') => {
           if (permissionState === 'granted') {
-    		if(this.hasDeviceMotion) {
-				window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
-			}
+    this.hasDeviceMotion = true;
+				window.addEventListener("deviceorientation", this.docEvtDevOrientAux, false);
+			console.log('orientation access granted');
           }
         })
         .catch(console.error);
     } else {
+			console.log('orientation access not granted');
       // handle regular non iOS 13+ devices
     }
   }
