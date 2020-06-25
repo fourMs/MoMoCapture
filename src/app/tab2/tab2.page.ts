@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Injectable, NgZone } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
@@ -10,7 +10,10 @@ import { UUID } from 'angular2-uuid';
 import { File, FileEntry } from '@ionic-native/file/ngx';
 import { SessionDataService } from '../providers/sessionData.service';
 import { PowerManagement } from '@ionic-native/power-management/ngx';
+import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { Subscription } from "rxjs";
 import * as JSZip from "jszip";
 import { saveAs } from 'file-saver';
@@ -68,13 +71,14 @@ declare const cordova: any;
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss']
 })
-export class Tab2Page implements OnInit {
+export class Tab2Page implements OnInit, OnDestroy {
 
 	private docEvtDevMotion:EventListenerOrEventListenerObject = null;
 	private docEvtDevMotionAux:EventListenerOrEventListenerObject = null;
         private docEvtDevOrient:EventListenerOrEventListenerObject = null;
         private docEvtDevOrientAux:EventListenerOrEventListenerObject = null;
 	private geoSubscription: Subscription;
+	private ngUnsubscribe = new Subject();
 	captureOn: boolean = false;
 	acc: AccelerationType = {x:0, y:0, z:0};
 	rot: RotationType = {alpha:0, beta:0, gamma:0};
@@ -106,7 +110,8 @@ export class Tab2Page implements OnInit {
   	private httpNative: HTTP,
   	private file: File,
   	private sessionData: SessionDataService,
-  	private powerManagement: PowerManagement
+  	private powerManagement: PowerManagement,
+  	private localNotifications: LocalNotifications
   	) {  	
     let self = this;
     this.docEvtDevMotion = (event: DeviceMotionEvent)=>{
@@ -132,6 +137,26 @@ export class Tab2Page implements OnInit {
        if(this.isIOSMotion) {
        	 this.requestPermissionIOS();
        }
+		this.platform.pause
+		.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+		  this.zone.run(() => {
+		    if(this.captureOn === true && this.isIOS === true) {
+				this.stopCapture();
+				// Schedule a single notification
+				this.localNotifications.schedule({
+					id: 1,
+					title: 'The MusicLab app has stopped recording.',
+					text: 'Please resume recording if you are still participating in the experiment.',
+					foreground: true
+				});
+		    }
+		  });
+		});
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 
   ionViewDidEnter() {
@@ -151,10 +176,10 @@ export class Tab2Page implements OnInit {
   }
 
   checkDeviceMotion(event: DeviceMotionEvent) {
-console.log('checkDeviceMotion in');
+		// console.log('checkDeviceMotion in');
 		this.zone.run(() => {
-console.log(JSON.stringify(event));
-console.log(this.hasDeviceMotion);
+			// console.log(JSON.stringify(event));
+			// console.log(this.hasDeviceMotion);
 		    if(event.accelerationIncludingGravity.x) {
 			    this.hasAccelerometer = true;
 		  	}
@@ -164,7 +189,7 @@ console.log(this.hasDeviceMotion);
 			    this.hasGyroscope = true;
 		  	}
 			if(this.hasDeviceMotion) {
-console.log('removing motion listener');
+				//console.log('removing motion listener');
 				window.removeEventListener("devicemotion", this.docEvtDevMotionAux, false);
 			}
 		});
@@ -172,15 +197,15 @@ console.log('removing motion listener');
 
 
   checkDeviceOrientation(event: DeviceOrientationEvent) {
-console.log('checkDeviceOrientation in');
+		//console.log('checkDeviceOrientation in');
 		this.zone.run(() => {
-console.log(JSON.stringify(event));
-console.log(this.hasDeviceMotion);
+			//console.log(JSON.stringify(event));
+			//console.log(this.hasDeviceMotion);
 		  	if(event.alpha) {
 			    this.hasGyroscope = true;
 		  	}
 			if(this.hasDeviceMotion) {
-console.log('removing orientation listener');
+				//console.log('removing orientation listener');
 				window.removeEventListener("deviceorientation", this.docEvtDevOrientAux, false);
 			}
 		});
@@ -213,9 +238,9 @@ console.log('removing orientation listener');
 	  //console.log(event);
 		this.zone.run(() => {
 
-			var currentTime: number = new Date().getTime();
-			var timeDiff: number = currentTime - this.dateStart.getTime();
-			this.countMotionReading++;
+		var currentTime: number = new Date().getTime();
+		var timeDiff: number = currentTime - this.dateStart.getTime();
+		this.countMotionReading++;
 	    this.readFrequency = parseFloat((1000 * this.countMotionReading / (timeDiff)).toFixed(4));
 
 	    this.general.timestamp = parseFloat(event.timeStamp.toFixed(4));
@@ -227,8 +252,8 @@ console.log('removing orientation listener');
 	  	}
 
 		let alpha = 0;
-                let beta = 0;
-                let gamma = 0;
+        let beta = 0;
+        let gamma = 0;
 
 	  	if(event.rotationRate && event.rotationRate.alpha) {
 		    this.rot.alpha = parseFloat(event.rotationRate.alpha.toFixed(4));
@@ -301,9 +326,10 @@ console.log('removing orientation listener');
 			 });
 		}, 
 		(error: PositionError) => console.log(error));
+
 	 }
 
-	stopCapture(e: any) {
+	stopCapture() {
 	  //window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
 	  if(this.hasDeviceMotion) {
 	    window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
@@ -415,14 +441,14 @@ console.log('removing orientation listener');
       (DeviceMotionEvent as any).requestPermission()
         .then((permissionState: 'granted' | 'denied' | 'default') => {
           if (permissionState === 'granted') {
-        this.hasDeviceMotion = true;
-				window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
-			alert('motion access granted');
+        	this.hasDeviceMotion = true;
+			window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
+			alert('Motion access granted');
           }
         })
         .catch(console.error);
     } else {
-			console.log('motion access not granted');
+			//console.log('motion access not granted');
       // handle regular non iOS 13+ devices
     }
   }
@@ -433,14 +459,14 @@ console.log('removing orientation listener');
       (DeviceOrientationEvent as any).requestPermission()
         .then((permissionState: 'granted' | 'denied' | 'default') => {
           if (permissionState === 'granted') {
-    this.hasDeviceMotion = true;
-				window.addEventListener("deviceorientation", this.docEvtDevOrientAux, false);
-			console.log('orientation access granted');
+    		this.hasDeviceMotion = true;
+			window.addEventListener("deviceorientation", this.docEvtDevOrientAux, false);
+			//console.log('orientation access granted');
           }
         })
         .catch(console.error);
     } else {
-			console.log('orientation access not granted');
+			//console.log('orientation access not granted');
       // handle regular non iOS 13+ devices
     }
   }

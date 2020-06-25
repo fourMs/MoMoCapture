@@ -124,6 +124,16 @@ export class FormPage implements OnInit {
         if(question.name == 'userID') {
           newModel.value = this.sessionData.uuid;
           userIDinputModelID = "_"+question.id;
+          newModel.layout =  {       
+            element: {
+              control: "userID-element-control",
+              label: "userID-element-label"
+            },
+            grid: {
+              control: "userID-grid-control",
+              label: "userID-grid-label"
+            }
+          }
         }
       }
       if(question.type == 'checkbox') {
