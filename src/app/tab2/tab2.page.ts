@@ -172,6 +172,12 @@ export class Tab2Page implements OnInit, OnDestroy {
 
 	if (this.platform.is('ios')) {
 		this.isIOS = true;
+		this.localNotifications.hasPermission()
+		  .then((hasPermission) => {
+			if(!hasPermission) {
+				this.localNotifications.requestPermission();
+			}
+		  });
 	}
   }
 
