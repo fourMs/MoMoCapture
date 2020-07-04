@@ -35,6 +35,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
   	AppRoutingModule,
     ReactiveFormsModule,
     DynamicFormsMaterialUIModule,
+    DynamicFormsIonicUIModule,
     BrowserAnimationsModule
   	],
   providers: [

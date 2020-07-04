@@ -112,18 +112,17 @@ export class FormPage implements OnInit {
   	this.title = this.myResponse.form.title;
     this.formModel = [];
     this.myFormSpec = this.formSpec(this.myResponse)
-    let userIDinputModelID = null;
     let newModel = null;
     for (var question of this.myFormSpec.fields) {
       if(question.type == 'text') {
         newModel = new DynamicInputModel({
                 id: "_"+question.id,
-                label: question.name,
+                label: " ",
+                placeholder: this.decodeHtml(question.name),
                 autoComplete: AUTOCOMPLETE_OFF
           });
         if(question.name == 'userID') {
           newModel.value = this.sessionData.uuid;
-          userIDinputModelID = "_"+question.id;
           newModel.layout =  {       
             element: {
               control: "userID-element-control",
@@ -134,6 +133,12 @@ export class FormPage implements OnInit {
               label: "userID-grid-label"
             }
           }
+        } else {
+        let newModelLabel = new DynamicRadioGroupModel({
+              id: "_label_"+question.id,
+              label: question.name
+          });
+        this.formModel.push(newModelLabel);
         }
       }
       if(question.type == 'checkbox') {
@@ -186,15 +191,11 @@ export class FormPage implements OnInit {
       if(question.required) {
         newModel.required = true;
       }
-      this.formModel.push(newModel)  
+      this.formModel.push(newModel); 
     }
     this.formGroup = this.formService.createFormGroup(this.formModel);
     this.showForm = true;
     this.changeDetectorRef.detectChanges();
-    if(userIDinputModelID) {
-      const userIDinputModel = this.formService.findModelById<DynamicInputModel>(userIDinputModelID, this.formModel);
-      userIDinputModel.disabled = true;
-    }
   }
 
   decodeHtml(html) {
@@ -222,7 +223,8 @@ export class FormPage implements OnInit {
         }
       }
       if(questionType == 'text') {
-        form.append('answersAsMap[' + id + '].textAnswer', this.formGroup.value[questionId]);
+        if(this.formGroup.value[questionId] != null)
+          form.append('answersAsMap[' + id + '].textAnswer', this.formGroup.value[questionId]);
       }
       if(questionType == 'checkbox') {
         let checkbox = this.formGroup.value[questionId];
@@ -235,7 +237,8 @@ export class FormPage implements OnInit {
       }
       if(questionType == 'radio') {
         let option = this.formGroup.value[questionId];
-        form.append('answersAsMap[' + id + '].answerOption', option.replace("_",""));
+        if(option != null)
+          form.append('answersAsMap[' + id + '].answerOption', option.replace("_",""));
       }
     }
     //form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
