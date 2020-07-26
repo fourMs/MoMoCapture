@@ -94,6 +94,7 @@ export class AppComponent {
               let data = JSON.parse(response.data);
               this.sessionData.preFormId = data[0];
               this.sessionData.postFormId = data[1];
+              this.sessionData.consentFormId = data[2];
               this.loadFormsContent(data);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
             },
@@ -114,6 +115,7 @@ export class AppComponent {
             response => {
               this.sessionData.preFormId = response[0];
               this.sessionData.postFormId = response[1];
+              this.sessionData.consentFormId = response[2];
               this.loadFormsContent(response);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
@@ -125,7 +127,7 @@ export class AppComponent {
   }
 
   loadFormsContent(formIds: any) {
-    for (var i = 0; i < 2; i++) {
+    for (var i = 0; i < 3; i++) {
       if (this.platform.is('cordova')) {
           var thisMethod: requestMethod = 'get';
           var options = { method: thisMethod };
@@ -136,11 +138,15 @@ export class AppComponent {
                 if(myResponse.form.formId == this.sessionData.preFormId) {
                   this.sessionData.preFormObject = myResponse;
                   formType = "pre";
-                  this.router.navigateByUrl('/tabs', { replaceUrl: true });
                 }
                 if(myResponse.form.formId == this.sessionData.postFormId) {
                   this.sessionData.postFormObject = myResponse;
                   formType = "post";
+                }
+                if(myResponse.form.formId == this.sessionData.consentFormId) {
+                  this.sessionData.consentFormObject = myResponse;
+                  formType = "consent";
+                  this.router.navigateByUrl('/form-consent', { replaceUrl: true });
                 }
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + formType + "Form load:" + response.status.toString() + "\n";
               },
@@ -162,11 +168,15 @@ export class AppComponent {
                 if(myResponse.form.formId == this.sessionData.preFormId) {
                   this.sessionData.preFormObject = myResponse;
                   formType = "pre";
-                  this.router.navigateByUrl('/tabs', { replaceUrl: true });
                 }
                 if(myResponse.form.formId == this.sessionData.postFormId) {
                   this.sessionData.postFormObject = myResponse;
                   formType = "post";
+                }
+                if(myResponse.form.formId == this.sessionData.consentFormId) {
+                  this.sessionData.consentFormObject = myResponse;
+                  formType = "consent";
+                  this.router.navigateByUrl('/form-consent', { replaceUrl: true });
                 }
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + formType + "Form load: ok\n";
               },

@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { HTTP } from '@ionic-native/http/ngx';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -30,7 +31,9 @@ const fieldTypes = {
   'SELECT': 'radio',
   'QUESTION': 'text',
   'QUESTION_MULTILINE': 'text',
-  'TEXT': 'html'
+  'TEXT': 'html',
+  'HEADING': 'head',
+  'IMAGE': 'image'
 }
 
 @Component({
@@ -48,6 +51,8 @@ export class FormPage implements OnInit {
   formGroup: FormGroup;
   showForm: boolean = false;
   isSubmittingForm: boolean = false;
+  consentAgreeId: number;
+  isConsentGiven: boolean = false;
 
   constructor(
   	private platform: Platform,
@@ -56,20 +61,29 @@ export class FormPage implements OnInit {
     private httpNative: HTTP,
     private activatedRoute: ActivatedRoute,
     private formService: DynamicFormService,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private router: Router
   	) { }
 
   ngOnInit() {
-    this.formType = this.activatedRoute.snapshot.paramMap.get('type');
-    if(this.formType == 'pre') {
-      this.formId = this.sessionData.preFormId;
-      this.myResponse = this.sessionData.preFormObject;
-    }
-    if(this.formType == 'post') {
-      this.formId = this.sessionData.postFormId;
-      this.myResponse = this.sessionData.postFormObject;
-    }
-    this.processForm();
+    this.activatedRoute.data.subscribe(data => {
+      this.formType = data.type;
+
+      if(this.formType == 'pre') {
+        this.formId = this.sessionData.preFormId;
+        this.myResponse = this.sessionData.preFormObject;
+      }
+      if(this.formType == 'post') {
+        this.formId = this.sessionData.postFormId;
+        this.myResponse = this.sessionData.postFormObject;
+      }
+      if(this.formType == 'consent') {
+        this.formId = this.sessionData.consentFormId;
+        this.myResponse = this.sessionData.consentFormObject;
+      }
+
+      this.processForm();
+    });
   }
 
   formSpec(answerJson) {
@@ -80,6 +94,22 @@ export class FormPage implements OnInit {
         b.questions = new Array({
           questionId: b.elementId,
           text: b.description,
+          mandatory: false,
+          answerOptions: []
+        });
+      }
+      if(b.elementType == "IMAGE" && b.image && b.image.imageId) {
+        b.questions = new Array({
+          questionId: b.elementId,
+          text: b.image.imageId,
+          mandatory: false,
+          answerOptions: []
+        });
+      }
+      if(b.elementType == "HEADING") {
+        b.questions = new Array({
+          questionId: b.elementId,
+          text: b.title,
           mandatory: false,
           answerOptions: []
         });
@@ -171,6 +201,9 @@ export class FormPage implements OnInit {
                       label: this.decodeHtml(option.name)
                   }
           )
+          if(option.name.includes("I agree")) {
+            this.consentAgreeId = option.id;
+          }
         }
       }
       if(question.type == 'html') {
@@ -178,15 +211,18 @@ export class FormPage implements OnInit {
                 id: "_"+question.id,
                 label: question.name
           });
-        //  newModel.layout =  {       
-        //    element: {
-        //     control: "textarea-element-control",
-        //     label: "textarea-element-label"
-        // },
-        // grid: {
-        //     control: "textarea-grid-control",
-        //     label: "textarea-grid-label"
-        // }}
+      }
+      if(question.type == 'head') {
+        newModel = new DynamicRadioGroupModel({
+                id: "_"+question.id,
+                label: "<h2>" + question.name + "</h2>"
+          });
+      }
+      if(question.type == 'image') {
+        newModel = new DynamicRadioGroupModel({
+                id: "_"+question.id,
+                label: "<img src='https://nettskjema.no/image/" + question.name + "'>"
+          });
       }
       if(question.required) {
         newModel.required = true;
@@ -209,6 +245,9 @@ export class FormPage implements OnInit {
     if (!this.platform.is('cordova')) {
       window.setTimeout(() => {
         alert("Form submitted successfully!");
+        if(this.formType == 'consent') {
+          this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+        }
         this.isSubmittingForm = false;
       }, 2000);
       return;
@@ -237,8 +276,12 @@ export class FormPage implements OnInit {
       }
       if(questionType == 'radio') {
         let option = this.formGroup.value[questionId];
-        if(option != null)
+        if(option != null) {
           form.append('answersAsMap[' + id + '].answerOption', option.replace("_",""));
+          if(option.replace("_","") == this.consentAgreeId) {
+            this.isConsentGiven = true;
+          }
+        }
       }
     }
     //form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
@@ -256,6 +299,13 @@ export class FormPage implements OnInit {
           alert("Form submitted successfully!");
           this.isSubmittingForm = false;
           this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
+          if(this.formType == 'consent') {
+            if(this.isConsentGiven) {
+              this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+            } else {
+              alert("You can only use this app if you agree and consent!");
+            }
+          }
         },
         (err) => {
           console.error(err.status);

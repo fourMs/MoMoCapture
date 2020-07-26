@@ -28,15 +28,37 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'form-pre',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('../form/form.module').then(m => m.FormPageModule),
+              data : { type:'pre'}
+          }
+        ]
+      },
+      {
+        path: 'form-post',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('../form/form.module').then(m => m.FormPageModule),
+              data : { type:'post'}
+          }
+        ]
+      },
+      {
         path: '',
-        redirectTo: '/tabs/form/pre',
+        redirectTo: '/tabs/form-pre',
         pathMatch: 'full'
       }
     ]
   },
   {
     path: '',
-    redirectTo: '/tabs/form/pre',
+    redirectTo: '/tabs/form-pre',
     pathMatch: 'full'
   }
 ];

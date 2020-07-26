@@ -12,8 +12,10 @@ export class SessionDataService {
   public wakeLock: string = "";
   public preFormId: number;
   public postFormId: number;
+  public consentFormId: number;
   public preFormObject: any = null;
   public postFormObject: any = null;
+  public consentFormObject: any = null;
 
   constructor(
   ) {
