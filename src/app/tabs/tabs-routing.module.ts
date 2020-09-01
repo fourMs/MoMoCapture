@@ -50,6 +50,17 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'form-withdraw',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('../form/form.module').then(m => m.FormPageModule),
+              data : { type:'withdraw'}
+          }
+        ]
+      },
+      {
         path: '',
         redirectTo: '/tabs/form-pre',
         pathMatch: 'full'

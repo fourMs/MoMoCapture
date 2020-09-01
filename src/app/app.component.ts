@@ -55,6 +55,16 @@ export class AppComponent {
                 );
             }
           );
+        this.nativeStorage.getItem('consent')
+          .then(
+            data => { 
+              this.sessionData.consentGiven = data;
+              console.log('Already stored item consentGiven:' + data)
+            },
+            error => {
+              console.error('storage item consentGiven does not exists')
+            }
+          );
         this.backgroundMode.on("activate").subscribe(() => {
            this.backgroundMode.disableWebViewOptimizations(); 
            this.backgroundMode.disableBatteryOptimizations();
@@ -95,6 +105,7 @@ export class AppComponent {
               this.sessionData.preFormId = data[0];
               this.sessionData.postFormId = data[1];
               this.sessionData.consentFormId = data[2];
+              this.sessionData.withdrawFormId = data[3];
               this.loadFormsContent(data);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
             },
@@ -116,6 +127,7 @@ export class AppComponent {
               this.sessionData.preFormId = response[0];
               this.sessionData.postFormId = response[1];
               this.sessionData.consentFormId = response[2];
+              this.sessionData.withdrawFormId = response[3];
               this.loadFormsContent(response);
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
@@ -127,7 +139,7 @@ export class AppComponent {
   }
 
   loadFormsContent(formIds: any) {
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
       if (this.platform.is('cordova')) {
           var thisMethod: requestMethod = 'get';
           var options = { method: thisMethod };
@@ -146,7 +158,15 @@ export class AppComponent {
                 if(myResponse.form.formId == this.sessionData.consentFormId) {
                   this.sessionData.consentFormObject = myResponse;
                   formType = "consent";
-                  this.router.navigateByUrl('/form-consent', { replaceUrl: true });
+                  if(this.sessionData.consentGiven) {
+                    this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+                  } else {
+                    this.router.navigateByUrl('/form-consent', { replaceUrl: true });
+                  }
+                }
+                if(myResponse.form.formId == this.sessionData.withdrawFormId) {
+                  this.sessionData.withdrawFormObject = myResponse;
+                  formType = "withdraw";
                 }
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + formType + "Form load:" + response.status.toString() + "\n";
               },
@@ -176,7 +196,15 @@ export class AppComponent {
                 if(myResponse.form.formId == this.sessionData.consentFormId) {
                   this.sessionData.consentFormObject = myResponse;
                   formType = "consent";
-                  this.router.navigateByUrl('/form-consent', { replaceUrl: true });
+                  if(this.sessionData.consentGiven) {
+                    this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+                  } else {
+                    this.router.navigateByUrl('/form-consent', { replaceUrl: true });
+                  }
+                }
+                if(myResponse.form.formId == this.sessionData.withdrawFormId) {
+                  this.sessionData.withdrawFormObject = myResponse;
+                  formType = "withdraw";
                 }
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n " + formType + "Form load: ok\n";
               },

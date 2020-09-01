@@ -25,9 +25,11 @@ import { DynamicFormsMaterialUIModule } from "@ng-dynamic-forms/ui-material";
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+import { PopupComponent } from './popup/popup.component';
+
 @NgModule({
-  declarations: [AppComponent],
-  entryComponents: [],
+  declarations: [AppComponent, PopupComponent],
+  entryComponents: [PopupComponent],
   imports: [
   	BrowserModule, 
     HttpClientModule,

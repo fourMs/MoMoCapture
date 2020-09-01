@@ -1,10 +1,12 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { Platform } from '@ionic/angular';
+import { Platform, PopoverController } from '@ionic/angular';
 import { HTTP } from '@ionic-native/http/ngx';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionDataService } from '../providers/sessionData.service';
 import { ActivatedRoute } from '@angular/router';
+import { NativeStorage } from '@ionic-native/native-storage/ngx';
+import { PopupComponent } from '../popup/popup.component';
 import {
     DynamicFormService,
     DynamicFormModel,
@@ -53,6 +55,8 @@ export class FormPage implements OnInit {
   isSubmittingForm: boolean = false;
   consentAgreeId: number;
   isConsentGiven: boolean = false;
+  withdrawId: number;
+  didWithdraw: boolean = false;
 
   constructor(
   	private platform: Platform,
@@ -62,7 +66,9 @@ export class FormPage implements OnInit {
     private activatedRoute: ActivatedRoute,
     private formService: DynamicFormService,
     private changeDetectorRef: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private nativeStorage: NativeStorage,
+    public popoverController: PopoverController
   	) { }
 
   ngOnInit() {
@@ -80,6 +86,10 @@ export class FormPage implements OnInit {
       if(this.formType == 'consent') {
         this.formId = this.sessionData.consentFormId;
         this.myResponse = this.sessionData.consentFormObject;
+      }
+      if(this.formType == 'withdraw') {
+        this.formId = this.sessionData.withdrawFormId;
+        this.myResponse = this.sessionData.withdrawFormObject;
       }
 
       this.processForm();
@@ -204,6 +214,9 @@ export class FormPage implements OnInit {
           if(option.name.includes("I agree")) {
             this.consentAgreeId = option.id;
           }
+          if(option.name.includes("Yes") && option.name.includes("withdraw")) {
+            this.withdrawId = option.id;
+          }
         }
       }
       if(question.type == 'html') {
@@ -247,6 +260,11 @@ export class FormPage implements OnInit {
         alert("Form submitted successfully!");
         if(this.formType == 'consent') {
           this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+          this.sessionData.consentGiven = true;
+        }
+        if(this.formType == 'withdraw') {
+          this.router.navigateByUrl('/form-consent', { replaceUrl: true });
+          this.sessionData.consentGiven = false;
         }
         this.isSubmittingForm = false;
       }, 2000);
@@ -281,6 +299,9 @@ export class FormPage implements OnInit {
           if(option.replace("_","") == this.consentAgreeId) {
             this.isConsentGiven = true;
           }
+          if(option.replace("_","") == this.withdrawId) {
+            this.didWithdraw = true;
+          }
         }
       }
     }
@@ -302,9 +323,22 @@ export class FormPage implements OnInit {
           if(this.formType == 'consent') {
             if(this.isConsentGiven) {
               this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+              this.nativeStorage.setItem('consent', true)
+                .then(
+                  () => console.log('Stored item consent:' + true),
+                  error => console.error('Error storing item consent', error)
+                );
             } else {
               alert("You can only use this app if you agree and consent!");
             }
+          }
+          if(this.formType == 'withdraw' && this.didWithdraw) {
+            this.router.navigateByUrl('/form-consent', { replaceUrl: true });
+            this.nativeStorage.setItem('consent', false)
+              .then(
+                () => console.log('Stored item consent:' + false),
+                error => console.error('Error storing item consent', error)
+              );
           }
         },
         (err) => {
@@ -317,6 +351,19 @@ export class FormPage implements OnInit {
       });
 
 
+  }
+
+  async popoverMenu(e: any) {
+    const popover = await this.popoverController.create({
+      component: PopupComponent,
+      translucent: false,
+      showBackdrop: false,
+      animated: true,
+      event: e,
+      cssClass: 'popoverClass',
+    });
+    this.sessionData.currentPopover = popover
+    return await popover.present();
   }
 
 }

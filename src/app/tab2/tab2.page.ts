@@ -5,12 +5,13 @@ import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { HTTP } from '@ionic-native/http/ngx';
-import { Platform } from '@ionic/angular';
+import { Platform, PopoverController } from '@ionic/angular';
 import { UUID } from 'angular2-uuid';
 import { File, FileEntry } from '@ionic-native/file/ngx';
 import { SessionDataService } from '../providers/sessionData.service';
 import { PowerManagement } from '@ionic-native/power-management/ngx';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+import { PopupComponent } from '../popup/popup.component';
 
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -111,7 +112,8 @@ export class Tab2Page implements OnInit, OnDestroy {
   	private file: File,
   	private sessionData: SessionDataService,
   	private powerManagement: PowerManagement,
-  	private localNotifications: LocalNotifications
+  	private localNotifications: LocalNotifications,
+  	public popoverController: PopoverController
   	) {  	
     let self = this;
     this.docEvtDevMotion = (event: DeviceMotionEvent)=>{
@@ -475,6 +477,19 @@ export class Tab2Page implements OnInit, OnDestroy {
 			//console.log('orientation access not granted');
       // handle regular non iOS 13+ devices
     }
+  }
+
+  async popoverMenu(e: any) {
+    const popover = await this.popoverController.create({
+      component: PopupComponent,
+      translucent: false,
+      showBackdrop: false,
+      animated: true,
+      event: e,
+      cssClass: 'popoverClass',
+    });
+    this.sessionData.currentPopover = popover
+    return await popover.present();
   }
 
 }
