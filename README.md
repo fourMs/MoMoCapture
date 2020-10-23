@@ -6,7 +6,7 @@ This app is meant for participants at MusicLab events organized by RITMO Centre 
 ## Builds
 
 * [Android version](https://play.google.com/store/apps/details?id=no.uio.mobileapps.musiclab&hl=en)
-* [iOS version]()
+* [iOS version](https://apps.apple.com/us/app/musiclab/id1512077801)
 
 ## Credits
 
