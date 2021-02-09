@@ -410,6 +410,9 @@ export class Tab2Page implements OnInit, OnDestroy {
 			    console.log(response.headers);
 			    alert("Data sent successfully!");
 			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
+				this.deviceMotionList = [];
+				this.geolocationList = [];
+			    this.deviceOrientationList = [];
         },
         (err) => {
 			    console.error(err.status);
