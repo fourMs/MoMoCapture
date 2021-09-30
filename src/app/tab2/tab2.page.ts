@@ -252,11 +252,16 @@ export class Tab2Page implements OnInit, OnDestroy {
 	    this.readFrequency = parseFloat((1000 * this.countMotionReading / (timeDiff)).toFixed(4));
 
 	    this.general.timestamp = parseFloat(event.timeStamp.toFixed(4));
+		
+		let factor = 1.0;
+		if(this.isIOS){
+			factor = -1.0;
+		}
 
 	    if(event.accelerationIncludingGravity.x) {
-		    this.acc.x = parseFloat(event.accelerationIncludingGravity.x.toFixed(4));
-		    this.acc.y = parseFloat(event.accelerationIncludingGravity.y.toFixed(4));
-		    this.acc.z = parseFloat(event.accelerationIncludingGravity.z.toFixed(4));
+		    this.acc.x = factor * parseFloat(event.accelerationIncludingGravity.x.toFixed(4));
+		    this.acc.y = factor * parseFloat(event.accelerationIncludingGravity.y.toFixed(4));
+		    this.acc.z = factor * parseFloat(event.accelerationIncludingGravity.z.toFixed(4));
 	  	}
 
 		let alpha = 0;
@@ -275,9 +280,9 @@ export class Tab2Page implements OnInit, OnDestroy {
 	  	this.deviceMotionList.push({
 	  			timestamp: currentTime,
 	  		    time: event.timeStamp,
-				x: event.accelerationIncludingGravity.x,
-				y: event.accelerationIncludingGravity.y,
-				z: event.accelerationIncludingGravity.z,
+				x: factor * event.accelerationIncludingGravity.x,
+				y: factor * event.accelerationIncludingGravity.y,
+				z: factor * event.accelerationIncludingGravity.z,
 				alpha: alpha,
 				beta: beta,
 				gamma: gamma
