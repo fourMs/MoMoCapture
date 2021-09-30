@@ -100,6 +100,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	isIOS: boolean = false;
 	isIOS13: boolean = false;
 	isIOSMotion: boolean = false;
+	dataUploadTimer: number = 0.0;
 
   constructor(
   	private zone: NgZone,
@@ -253,6 +254,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 
 	    this.general.timestamp = parseFloat(event.timeStamp.toFixed(4));
 		
+		//Change sign to match between iOS and Android
 		let factor = 1.0;
 		if(this.isIOS){
 			factor = -1.0;
@@ -288,6 +290,15 @@ export class Tab2Page implements OnInit, OnDestroy {
 				gamma: gamma
 	  	});
 
+		let periodInMs = 10000
+		if((currentTime - this.dataUploadTimer) >= periodInMs){
+			//Upload data
+			this.sendFileHttp(false);
+			this.dataUploadTimer = currentTime;
+			console.log('data');
+		}
+
+
 		});
 	}
 
@@ -310,6 +321,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	    this.turnOnWakeLock();
 	    this.captureOn = true;
 		this.dateStart = new Date();
+		this.dataUploadTimer = this.dateStart.getTime();
 		this.countMotionReading = 0;
 		this.countOrientationReading = 0;
 		this.countGPSReading = 0;
@@ -388,7 +400,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 		return(csvString);
 	}
 
-	private async sendFileHttp(){
+	private async sendFileHttp(alertWhenSucess = true){
 	   var zip = new JSZip();
 	    zip.file(this.sessionData.uuid + '.deviceMotion.csv', this.arrayToCSV(this.deviceMotionList));
 	    if(this.geolocationList.length > 0)
@@ -397,35 +409,36 @@ export class Tab2Page implements OnInit, OnDestroy {
                 zip.file(this.sessionData.uuid +  '.deviceOrientation.csv', this.arrayToCSV(this.deviceOrientationList));
 	     }
 
-    var zipfile = await zip.generateAsync({ type: "blob" });
+		var zipfile = await zip.generateAsync({ type: "blob" });
 
-    const form = new cordova.plugin.http.ponyfills.FormData()
-    form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
-    form.append('answersAsMap[1996788].attachment.upload', zipfile, "data.zip");
-    this.httpNative.setDataSerializer("multipart");
-    var thisMethod: requestMethod = 'post';
-    var options = { method: thisMethod, data: form };
+		const form = new cordova.plugin.http.ponyfills.FormData()
+		form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
+		form.append('answersAsMap[1996788].attachment.upload', zipfile, "data.zip");
+		this.httpNative.setDataSerializer("multipart");
+		var thisMethod: requestMethod = 'post';
+		var options = { method: thisMethod, data: form };
 
-    this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";
+		this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";
 
-    this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
-        (response) => {
-			    console.log(response.status);
-			    console.log(JSON.parse(response.data)); // JSON data returned by server
-			    console.log(response.headers);
-			    alert("Data sent successfully!");
-			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
-				this.deviceMotionList = [];
-				this.geolocationList = [];
-			    this.deviceOrientationList = [];
-        },
-        (err) => {
-			    console.error(err.status);
-			    console.error(err.error); // Error message as string
-			    console.error(err.headers);
-			    alert("Error sending data!");
-			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
-			});
+		this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
+			(response) => {
+					console.log(response.status);
+					console.log(JSON.parse(response.data)); // JSON data returned by server
+					console.log(response.headers);
+					if(alertWhenSucess)
+						alert("Data sent successfully!");
+					this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
+					this.deviceMotionList = [];
+					this.geolocationList = [];
+					this.deviceOrientationList = [];
+			},
+			(err) => {
+					console.error(err.status);
+					console.error(err.error); // Error message as string
+					console.error(err.headers);
+					alert("Error sending data!");
+					this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
+				});
 
 	}
 
