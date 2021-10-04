@@ -290,7 +290,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 				gamma: gamma
 	  	});
 
-		let periodInMs = 10000
+		let periodInMs = 60000
 		if((currentTime - this.dataUploadTimer) >= periodInMs){
 			//Upload data
 			this.sendFileHttp(false);
