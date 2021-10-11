@@ -22,6 +22,7 @@
     "@angular/platform-browser": "~8.2.14",
     "@angular/platform-browser-dynamic": "~8.2.14",
     "@angular/router": "~8.2.14",
+    "@ionic-native/background-fetch": "^5.36.0",
     "@ionic-native/background-mode": "^5.23.0",
     "@ionic-native/core": "^5.0.0",
     "@ionic-native/device-motion": "^5.36.0",
@@ -81,6 +82,7 @@
     "cordova-android-support-gradle-release": "^3.0.1",
     "cordova-plugin-androidx": "^3.0.0",
     "cordova-plugin-androidx-adapter": "^1.1.3",
+    "cordova-plugin-background-fetch": "^7.0.3",
     "cordova-plugin-background-mode": "git+https://bitbucket.org/TheBosZ/cordova-plugin-run-in-background.git",
     "cordova-plugin-device-motion": "^2.0.1",
     "cordova-plugin-powermanagement-orig": "git+https://github.com/Viras-/cordova-plugin-powermanagement.git",
@@ -120,7 +122,8 @@
       },
       "cordova-plugin-androidx": {},
       "cordova-plugin-androidx-adapter": {},
-      "cordova-plugin-device-motion": {}
+      "cordova-plugin-device-motion": {},
+      "cordova-plugin-background-fetch": {}
     },
     "platforms": [
       "android",

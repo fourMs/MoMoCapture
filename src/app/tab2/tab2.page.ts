@@ -244,7 +244,7 @@ export class Tab2Page implements OnInit, OnDestroy {
         }
 
 	processEvent(event: DeviceMotionEvent) {
-	  //console.log(event);
+//	  console.log(event);
 		this.zone.run(() => {
 
 		var currentTime: number = new Date().getTime();
@@ -278,13 +278,26 @@ export class Tab2Page implements OnInit, OnDestroy {
 		    beta = event.rotationRate.beta;
 		    gamma = event.rotationRate.gamma;
 	  	}
+		
+		let x = factor * event.accelerationIncludingGravity.x;
+		let y = factor * event.accelerationIncludingGravity.y;
+		let z = factor * event.accelerationIncludingGravity.z;
+		
+		if (this.isIOS){
+			x = parseFloat(x.toFixed(4));
+			y = parseFloat(y.toFixed(4));
+			z = parseFloat(z.toFixed(4));
+			alpha = parseFloat(alpha.toFixed(4));
+			beta = parseFloat(beta.toFixed(4));
+			gamma = parseFloat(gamma.toFixed(4));
+		}
 
 	  	this.deviceMotionList.push({
 	  			timestamp: currentTime,
 	  		    time: event.timeStamp,
-				x: factor * event.accelerationIncludingGravity.x,
-				y: factor * event.accelerationIncludingGravity.y,
-				z: factor * event.accelerationIncludingGravity.z,
+				x: x,
+				y: y,
+				z: z,
 				alpha: alpha,
 				beta: beta,
 				gamma: gamma
