@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
+
 export class SessionDataService {
 
   public uuid: string = "";
@@ -22,6 +23,9 @@ export class SessionDataService {
   public postFormObject: any = null;
   public consentFormObject: any = null;
   public withdrawFormObject: any = null;
+
+  public formsMeta: any[] = []
+  public formsObjects: any[] = []
 
   public currentPopover: any = null;
 

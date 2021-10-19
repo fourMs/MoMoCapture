@@ -1,18 +1,22 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar>	
     <ion-title>
       Capture and Send Data
     </ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="popoverMenu($event)">
-            <ion-icon name="menu" ></ion-icon>
-          </ion-button>
-        </ion-buttons>
+	<ion-buttons slot="start">
+		<ion-button (click)="popoverMenu($event)">
+		<ion-icon name="menu" ></ion-icon>
+		</ion-button>
+	</ion-buttons>
+	<ion-buttons slot="end">
+		<ion-button (click)="popoverMenu($event)">
+		<ion-icon name="menu" ></ion-icon>
+		</ion-button>
+	</ion-buttons>	
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-
 	<ion-list class="ion-text-center">
 	  <ion-row responsive-sm [hidden]="captureOn">
 	    <ion-col>
