@@ -177,7 +177,7 @@ export class AppComponent {
         self.sessionData.consentFormObject = myResponse;
         formType = "consent";
         if(self.sessionData.consentGiven) {
-          self.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+          self.router.navigateByUrl('/tabs/tab2', { replaceUrl: true });
         } else {
           self.router.navigateByUrl('/form-consent', { replaceUrl: true });
         }

@@ -265,7 +265,7 @@ export class FormPage implements OnInit {
       window.setTimeout(() => {
         alert("Form submitted successfully!");
         if(this.formType == 'consent') {
-          this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+          this.router.navigateByUrl('/tabs/tab2', { replaceUrl: true });
           this.sessionData.consentGiven = true;
         }
         if(this.formType == 'withdraw') {
@@ -328,7 +328,7 @@ export class FormPage implements OnInit {
           this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
           if(this.formType == 'consent') {
             if(this.isConsentGiven) {
-              this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+              this.router.navigateByUrl('/tabs/tab2', { replaceUrl: true });
               this.nativeStorage.setItem('consent', true)
                 .then(
                   () => console.log('Stored item consent:' + true),
