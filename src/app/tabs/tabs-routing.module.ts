@@ -73,14 +73,14 @@ const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: '/tabs/form-pre',
+        redirectTo: '/tabs/tab2',
         pathMatch: 'full'
       }
     ]
   },
   {
     path: '',
-    redirectTo: '/tabs/form-pre',
+    redirectTo: '/tabs/tab2',
     pathMatch: 'full'
   }
 ];
