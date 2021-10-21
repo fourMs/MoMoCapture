@@ -1,6 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Platform, PopoverController } from '@ionic/angular';
+import { Platform, PopoverController, IonContent } from '@ionic/angular';
 import { HTTP } from '@ionic-native/http/ngx';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionDataService } from '../providers/sessionData.service';
@@ -45,6 +45,9 @@ const fieldTypes = {
   styleUrls: ['./form.page.scss'],
 })
 export class FormPage implements OnInit {
+
+  @ViewChild(IonContent, {static: true}) content: IonContent;
+
   title: string = "";
   myResponse: any;
   myFormSpec: any;
@@ -103,6 +106,7 @@ export class FormPage implements OnInit {
   }
 
   formSpec(answerJson) {
+    this.content.scrollToTop();
     const { form: { pages } } = answerJson
     const allElements = pages.reduce((a, b) => [...a, ...b.elements], [])
     const allQuestions = allElements.reduce((a, b) => {
