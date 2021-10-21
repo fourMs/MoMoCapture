@@ -17,7 +17,7 @@ export class PopupFormsComponent implements OnInit {
   	) { }
 
     ngOnInit() {
-      var maxForms = 10;
+      var maxForms = 15;
       var formsMeta = this.sessionData.formsMeta;
       var formsNum = formsMeta.length > maxForms ? maxForms : formsMeta.length;
       var i = 0;
