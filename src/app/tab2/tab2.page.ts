@@ -12,6 +12,7 @@ import { SessionDataService } from '../providers/sessionData.service';
 import { PowerManagement } from '@ionic-native/power-management/ngx';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { PopupComponent } from '../popup/popup.component';
+import { PopupFormsComponent } from '../popupforms/popupforms.component';
 
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -19,6 +20,22 @@ import { Subscription } from "rxjs";
 import * as JSZip from "jszip";
 import { saveAs } from 'file-saver';
 
+import { Router } from '@angular/router';
+
+customElements.define('popover-example-page', class ModalContent extends HTMLElement {
+	connectedCallback() {
+	  this.innerHTML = `
+		<ion-list>
+		  <ion-list-header>Ionic</ion-list-header>
+		  <ion-item button>Learn Ionic</ion-item>
+		  <ion-item button>Documentation</ion-item>
+		  <ion-item button>Showcase</ion-item>
+		  <ion-item button>GitHub Repo</ion-item>
+		</ion-list>
+		<ion-button expand="block" onClick="dismissPopover()">Close</ion-button>
+	  `;
+	}
+  });
 
 export interface GeneralInfoType {
   timestamp: number;
@@ -112,6 +129,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   	private httpNative: HTTP,
   	private file: File,
   	private sessionData: SessionDataService,
+	private router: Router,
   	private powerManagement: PowerManagement,
   	private localNotifications: LocalNotifications,
   	public popoverController: PopoverController
@@ -526,4 +544,18 @@ export class Tab2Page implements OnInit, OnDestroy {
     return await popover.present();
   }
 
+  async popoverFormsMenu(e: any) {
+    const popover = await this.popoverController.create({
+      component: PopupFormsComponent,
+      translucent: false,
+      showBackdrop: false,
+      animated: true,
+      event: e,
+      cssClass: 'popoverClass',
+    });
+    this.sessionData.currentPopover = popover
+    return await popover.present();
+  }
+
 }
+

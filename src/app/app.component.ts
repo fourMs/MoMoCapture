@@ -111,7 +111,19 @@ export class AppComponent {
             },
             (err) => {
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
-          });      
+          });   
+          
+          this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema_multi.txt', options).then(
+            (response) => {
+              let data = JSON.parse(response.data);           
+              for(let form of Object.values(data))
+                 this.sessionData.formsMeta.push(form);
+              this.loadFormsContent(null, this.sessionData.formsMeta); 
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + data  + "\n" ;
+            },
+            (err) => {
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
+          }); 
     } else {
         this.sessionData.uuid = UUID.UUID();
 
@@ -127,7 +139,7 @@ export class AppComponent {
               this.sessionData.postFormId = response[1];
               this.sessionData.consentFormId = response[2];
               this.sessionData.withdrawFormId = response[3];
-              this.loadFormsContent(response, null);
+              this.loadFormsContent(response, null); 
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
             error => {
@@ -138,8 +150,7 @@ export class AppComponent {
             response => {
               for(let form of Object.values(response))
                  this.sessionData.formsMeta.push(form);
-              console.log(this.sessionData.formsMeta); 
-              this.loadFormsContent(null, this.sessionData.formsMeta);
+              this.loadFormsContent(null, this.sessionData.formsMeta); 
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
             error => {
@@ -219,9 +230,15 @@ export class AppComponent {
         if (this.platform.is('cordova')) {
           var thisMethod: requestMethod = 'get';
           var options = { method: thisMethod };
-          this.httpNative.sendRequest('https://nettskjema.no/answer/answer.json?formId='+formsMeta[i].id, options).then(
+          this.httpNative.sendRequestSync('https://nettskjema.no/answer/answer.json?formId='+formsMeta[i].id, options,
               (response) => {
-                this.sessionData.formsObjects.push(JSON.parse(response.data));
+                //this is for synchronizing
+                var data: any = JSON.parse(response.data);
+                for(var m = 0; m < formsMeta.length; m++){
+                  if(data.form.formId == formsMeta[m].id)
+                    this.sessionData.formsObjects[m] = data;
+                }
+                console.log(this.sessionData.formsObjects);
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n All Forms load: ok\n";
               },
               (err) => {
@@ -237,7 +254,12 @@ export class AppComponent {
           };
           this.http.get('assets/data/' + formsMeta[i].id + '_answer.json').subscribe(
               response => {
-                this.sessionData.formsObjects.push(response);
+                //this is for synchronizing
+                var data: any = response;
+                for(var m = 0; m < formsMeta.length; m++){
+                  if(data.form.formId == formsMeta[m].id)
+                    this.sessionData.formsObjects[m] = data;
+                }                
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n All Forms load: ok\n";
               },
               error => {

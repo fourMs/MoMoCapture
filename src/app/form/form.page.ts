@@ -7,6 +7,7 @@ import { SessionDataService } from '../providers/sessionData.service';
 import { ActivatedRoute } from '@angular/router';
 import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { PopupComponent } from '../popup/popup.component';
+import { PopupFormsComponent } from '../popupforms/popupforms.component';
 import {
     DynamicFormService,
     DynamicFormModel,
@@ -90,6 +91,11 @@ export class FormPage implements OnInit {
       if(this.formType == 'withdraw') {
         this.formId = this.sessionData.withdrawFormId;
         this.myResponse = this.sessionData.withdrawFormObject;
+      }
+      if(this.formType == 'custom') {
+        var index = history.state.index
+        this.formId = this.sessionData.formsMeta[index].id;
+        this.myResponse = this.sessionData.formsObjects[index];
       }
 
       this.processForm();
@@ -356,6 +362,19 @@ export class FormPage implements OnInit {
   async popoverMenu(e: any) {
     const popover = await this.popoverController.create({
       component: PopupComponent,
+      translucent: false,
+      showBackdrop: false,
+      animated: true,
+      event: e,
+      cssClass: 'popoverClass',
+    });
+    this.sessionData.currentPopover = popover
+    return await popover.present();
+  }
+
+  async popoverFormsMenu(e: any) {
+    const popover = await this.popoverController.create({
+      component: PopupFormsComponent,
       translucent: false,
       showBackdrop: false,
       animated: true,

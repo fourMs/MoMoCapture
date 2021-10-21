@@ -50,6 +50,17 @@ const routes: Routes = [
         ]
       },
       {
+        path: 'form-custom',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('../form/form.module').then(m => m.FormPageModule),
+              data : { type:'custom'}
+          }
+        ]
+      },
+      {
         path: 'form-withdraw',
         children: [
           {
