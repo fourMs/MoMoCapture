@@ -156,7 +156,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   ngOnInit() {
        this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
        if(this.isIOSMotion) {
-       	 this.requestPermissionIOS();
+       	 this.requestPermissionIOS(false);
        }
 		this.platform.pause
 		.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
@@ -490,20 +490,21 @@ export class Tab2Page implements OnInit, OnDestroy {
   }
 
   // for requesting permission on iOS 13 devices
-  requestPermissionIOS() {
-    this.requestDeviceMotionIOS();
+  requestPermissionIOS(showMsg:boolean = true) {
+    this.requestDeviceMotionIOS(showMsg);
     this.requestDeviceOrientationIOS();
   }
 
   // requesting device orientation permission
-  requestDeviceMotionIOS() {
+  requestDeviceMotionIOS(showMsg:boolean = true) {
     if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
       (DeviceMotionEvent as any).requestPermission()
         .then((permissionState: 'granted' | 'denied' | 'default') => {
           if (permissionState === 'granted') {
         	this.hasDeviceMotion = true;
 			window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
-			alert('Motion access granted');
+			if (showMsg)
+				alert('Motion access granted');
           }
         })
         .catch(console.error);
