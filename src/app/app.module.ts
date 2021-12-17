@@ -26,10 +26,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { PopupComponent } from './popup/popup.component';
+import { PopupFormsComponent } from './popupforms/popupforms.component';
 
 @NgModule({
-  declarations: [AppComponent, PopupComponent],
-  entryComponents: [PopupComponent],
+  declarations: [AppComponent, PopupComponent, PopupFormsComponent ],
+  entryComponents: [PopupComponent, PopupFormsComponent],
   imports: [
   	BrowserModule, 
     HttpClientModule,

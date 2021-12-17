@@ -1,12 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Platform, PopoverController } from '@ionic/angular';
+import { Platform, PopoverController, IonContent } from '@ionic/angular';
 import { HTTP } from '@ionic-native/http/ngx';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionDataService } from '../providers/sessionData.service';
 import { ActivatedRoute } from '@angular/router';
 import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { PopupComponent } from '../popup/popup.component';
+import { PopupFormsComponent } from '../popupforms/popupforms.component';
 import {
     DynamicFormService,
     DynamicFormModel,
@@ -44,6 +45,9 @@ const fieldTypes = {
   styleUrls: ['./form.page.scss'],
 })
 export class FormPage implements OnInit {
+
+  @ViewChild(IonContent, {static: true}) content: IonContent;
+
   title: string = "";
   myResponse: any;
   myFormSpec: any;
@@ -91,12 +95,18 @@ export class FormPage implements OnInit {
         this.formId = this.sessionData.withdrawFormId;
         this.myResponse = this.sessionData.withdrawFormObject;
       }
+      if(this.formType == 'custom') {
+        var index = history.state.index
+        this.formId = this.sessionData.formsMeta[index].id;
+        this.myResponse = this.sessionData.formsObjects[index];
+      }
 
       this.processForm();
     });
   }
 
   formSpec(answerJson) {
+    this.content.scrollToTop();
     const { form: { pages } } = answerJson
     const allElements = pages.reduce((a, b) => [...a, ...b.elements], [])
     const allQuestions = allElements.reduce((a, b) => {
@@ -259,7 +269,7 @@ export class FormPage implements OnInit {
       window.setTimeout(() => {
         alert("Form submitted successfully!");
         if(this.formType == 'consent') {
-          this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+          this.router.navigateByUrl('/tabs/tab2', { replaceUrl: true });
           this.sessionData.consentGiven = true;
         }
         if(this.formType == 'withdraw') {
@@ -322,7 +332,7 @@ export class FormPage implements OnInit {
           this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
           if(this.formType == 'consent') {
             if(this.isConsentGiven) {
-              this.router.navigateByUrl('/tabs/form-pre', { replaceUrl: true });
+              this.router.navigateByUrl('/tabs/tab2', { replaceUrl: true });
               this.nativeStorage.setItem('consent', true)
                 .then(
                   () => console.log('Stored item consent:' + true),
@@ -356,6 +366,19 @@ export class FormPage implements OnInit {
   async popoverMenu(e: any) {
     const popover = await this.popoverController.create({
       component: PopupComponent,
+      translucent: false,
+      showBackdrop: false,
+      animated: true,
+      event: e,
+      cssClass: 'popoverClass',
+    });
+    this.sessionData.currentPopover = popover
+    return await popover.present();
+  }
+
+  async popoverFormsMenu(e: any) {
+    const popover = await this.popoverController.create({
+      component: PopupFormsComponent,
       translucent: false,
       showBackdrop: false,
       animated: true,

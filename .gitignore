@@ -8,3 +8,5 @@ node_modules/
 platforms/
 plugins/
 www/
+.gradle
+.DS_Store

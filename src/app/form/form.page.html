@@ -1,11 +1,16 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>{{title}}</ion-title>
-        <ion-buttons [hidden]="formType=='consent'" slot="end">
-          <ion-button (click)="popoverMenu($event)">
-            <ion-icon name="menu" ></ion-icon>
-          </ion-button>
-        </ion-buttons>
+	<ion-buttons [hidden]="formType=='consent'" slot="start">
+		<ion-button (click)="popoverFormsMenu($event)">
+		<ion-icon name="menu" ></ion-icon>
+		</ion-button>
+	</ion-buttons>
+	<ion-buttons [hidden]="formType=='consent'" slot="end">
+		<ion-button (click)="popoverMenu($event)">
+		<ion-icon name="menu" ></ion-icon>
+		</ion-button>
+	</ion-buttons>
   </ion-toolbar>
 </ion-header>
 

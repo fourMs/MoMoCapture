@@ -12,6 +12,7 @@ import { SessionDataService } from '../providers/sessionData.service';
 import { PowerManagement } from '@ionic-native/power-management/ngx';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { PopupComponent } from '../popup/popup.component';
+import { PopupFormsComponent } from '../popupforms/popupforms.component';
 
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -19,6 +20,22 @@ import { Subscription } from "rxjs";
 import * as JSZip from "jszip";
 import { saveAs } from 'file-saver';
 
+import { Router } from '@angular/router';
+
+customElements.define('popover-example-page', class ModalContent extends HTMLElement {
+	connectedCallback() {
+	  this.innerHTML = `
+		<ion-list>
+		  <ion-list-header>Ionic</ion-list-header>
+		  <ion-item button>Learn Ionic</ion-item>
+		  <ion-item button>Documentation</ion-item>
+		  <ion-item button>Showcase</ion-item>
+		  <ion-item button>GitHub Repo</ion-item>
+		</ion-list>
+		<ion-button expand="block" onClick="dismissPopover()">Close</ion-button>
+	  `;
+	}
+  });
 
 export interface GeneralInfoType {
   timestamp: number;
@@ -100,6 +117,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	isIOS: boolean = false;
 	isIOS13: boolean = false;
 	isIOSMotion: boolean = false;
+	dataUploadTimer: number = 0.0;
 
   constructor(
   	private zone: NgZone,
@@ -111,6 +129,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   	private httpNative: HTTP,
   	private file: File,
   	private sessionData: SessionDataService,
+	private router: Router,
   	private powerManagement: PowerManagement,
   	private localNotifications: LocalNotifications,
   	public popoverController: PopoverController
@@ -137,7 +156,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   ngOnInit() {
        this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
        if(this.isIOSMotion) {
-       	 this.requestPermissionIOS();
+       	 this.requestPermissionIOS(false);
        }
 		this.platform.pause
 		.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
@@ -243,7 +262,7 @@ export class Tab2Page implements OnInit, OnDestroy {
         }
 
 	processEvent(event: DeviceMotionEvent) {
-	  //console.log(event);
+//	  console.log(event);
 		this.zone.run(() => {
 
 		var currentTime: number = new Date().getTime();
@@ -252,11 +271,17 @@ export class Tab2Page implements OnInit, OnDestroy {
 	    this.readFrequency = parseFloat((1000 * this.countMotionReading / (timeDiff)).toFixed(4));
 
 	    this.general.timestamp = parseFloat(event.timeStamp.toFixed(4));
+		
+		//Change sign to match between iOS and Android
+		let factor = 1.0;
+		if(this.isIOS){
+			factor = -1.0;
+		}
 
 	    if(event.accelerationIncludingGravity.x) {
-		    this.acc.x = parseFloat(event.accelerationIncludingGravity.x.toFixed(4));
-		    this.acc.y = parseFloat(event.accelerationIncludingGravity.y.toFixed(4));
-		    this.acc.z = parseFloat(event.accelerationIncludingGravity.z.toFixed(4));
+		    this.acc.x = factor * parseFloat(event.accelerationIncludingGravity.x.toFixed(4));
+		    this.acc.y = factor * parseFloat(event.accelerationIncludingGravity.y.toFixed(4));
+		    this.acc.z = factor * parseFloat(event.accelerationIncludingGravity.z.toFixed(4));
 	  	}
 
 		let alpha = 0;
@@ -271,17 +296,39 @@ export class Tab2Page implements OnInit, OnDestroy {
 		    beta = event.rotationRate.beta;
 		    gamma = event.rotationRate.gamma;
 	  	}
+		
+		let x = factor * event.accelerationIncludingGravity.x;
+		let y = factor * event.accelerationIncludingGravity.y;
+		let z = factor * event.accelerationIncludingGravity.z;
+		
+		if (this.isIOS){
+			x = parseFloat(x.toFixed(4));
+			y = parseFloat(y.toFixed(4));
+			z = parseFloat(z.toFixed(4));
+			alpha = parseFloat(alpha.toFixed(4));
+			beta = parseFloat(beta.toFixed(4));
+			gamma = parseFloat(gamma.toFixed(4));
+		}
 
 	  	this.deviceMotionList.push({
 	  			timestamp: currentTime,
 	  		    time: event.timeStamp,
-				x: event.accelerationIncludingGravity.x,
-				y: event.accelerationIncludingGravity.y,
-				z: event.accelerationIncludingGravity.z,
+				x: x,
+				y: y,
+				z: z,
 				alpha: alpha,
 				beta: beta,
 				gamma: gamma
 	  	});
+
+		let periodInMs = 60000
+		if((currentTime - this.dataUploadTimer) >= periodInMs){
+			//Upload data
+			this.sendFileHttp(false);
+			this.dataUploadTimer = currentTime;
+			console.log('data');
+		}
+
 
 		});
 	}
@@ -305,6 +352,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	    this.turnOnWakeLock();
 	    this.captureOn = true;
 		this.dateStart = new Date();
+		this.dataUploadTimer = this.dateStart.getTime();
 		this.countMotionReading = 0;
 		this.countOrientationReading = 0;
 		this.countGPSReading = 0;
@@ -383,7 +431,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 		return(csvString);
 	}
 
-	private async sendFileHttp(){
+	private async sendFileHttp(alertWhenSucess = true){
 	   var zip = new JSZip();
 	    zip.file(this.sessionData.uuid + '.deviceMotion.csv', this.arrayToCSV(this.deviceMotionList));
 	    if(this.geolocationList.length > 0)
@@ -392,35 +440,36 @@ export class Tab2Page implements OnInit, OnDestroy {
                 zip.file(this.sessionData.uuid +  '.deviceOrientation.csv', this.arrayToCSV(this.deviceOrientationList));
 	     }
 
-    var zipfile = await zip.generateAsync({ type: "blob" });
+		var zipfile = await zip.generateAsync({ type: "blob" });
 
-    const form = new cordova.plugin.http.ponyfills.FormData()
-    form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
-    form.append('answersAsMap[1996788].attachment.upload', zipfile, "data.zip");
-    this.httpNative.setDataSerializer("multipart");
-    var thisMethod: requestMethod = 'post';
-    var options = { method: thisMethod, data: form };
+		const form = new cordova.plugin.http.ponyfills.FormData()
+		form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
+		form.append('answersAsMap[1996788].attachment.upload', zipfile, "data.zip");
+		this.httpNative.setDataSerializer("multipart");
+		var thisMethod: requestMethod = 'post';
+		var options = { method: thisMethod, data: form };
 
-    this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";
+		this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";
 
-    this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
-        (response) => {
-			    console.log(response.status);
-			    console.log(JSON.parse(response.data)); // JSON data returned by server
-			    console.log(response.headers);
-			    alert("Data sent successfully!");
-			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
-				this.deviceMotionList = [];
-				this.geolocationList = [];
-			    this.deviceOrientationList = [];
-        },
-        (err) => {
-			    console.error(err.status);
-			    console.error(err.error); // Error message as string
-			    console.error(err.headers);
-			    alert("Error sending data!");
-			    this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
-			});
+		this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
+			(response) => {
+					console.log(response.status);
+					console.log(JSON.parse(response.data)); // JSON data returned by server
+					console.log(response.headers);
+					if(alertWhenSucess)
+						alert("Data sent successfully!");
+					this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
+					this.deviceMotionList = [];
+					this.geolocationList = [];
+					this.deviceOrientationList = [];
+			},
+			(err) => {
+					console.error(err.status);
+					console.error(err.error); // Error message as string
+					console.error(err.headers);
+					alert("Error sending data!");
+					this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
+				});
 
 	}
 
@@ -441,20 +490,21 @@ export class Tab2Page implements OnInit, OnDestroy {
   }
 
   // for requesting permission on iOS 13 devices
-  requestPermissionIOS() {
-    this.requestDeviceMotionIOS();
+  requestPermissionIOS(showMsg:boolean = true) {
+    this.requestDeviceMotionIOS(showMsg);
     this.requestDeviceOrientationIOS();
   }
 
   // requesting device orientation permission
-  requestDeviceMotionIOS() {
+  requestDeviceMotionIOS(showMsg:boolean = true) {
     if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
       (DeviceMotionEvent as any).requestPermission()
         .then((permissionState: 'granted' | 'denied' | 'default') => {
           if (permissionState === 'granted') {
         	this.hasDeviceMotion = true;
 			window.addEventListener("devicemotion", this.docEvtDevMotionAux, false);
-			alert('Motion access granted');
+			if (showMsg)
+				alert('Motion access granted');
           }
         })
         .catch(console.error);
@@ -495,4 +545,18 @@ export class Tab2Page implements OnInit, OnDestroy {
     return await popover.present();
   }
 
+  async popoverFormsMenu(e: any) {
+    const popover = await this.popoverController.create({
+      component: PopupFormsComponent,
+      translucent: false,
+      showBackdrop: false,
+      animated: true,
+      event: e,
+      cssClass: 'popoverClass',
+    });
+    this.sessionData.currentPopover = popover
+    return await popover.present();
+  }
+
 }
+
