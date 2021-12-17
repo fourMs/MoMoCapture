@@ -10,7 +10,7 @@ This app is meant for participants at MusicLab events organized by RITMO Centre 
 
 ## Credits
 
-Developed by [Augusto Dias](https://github.com/gutosantos82/MoMoCapture).
+Developed by [Augusto Dias](https://github.com/gutosantos82/MoMoCapture) and [Pedro Lucas](https://github.com/pedro-lucas-bravo).
 
 ## License
 
