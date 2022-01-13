@@ -19,6 +19,7 @@ import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { NativeStorage } from '@ionic-native/native-storage/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+import { Brightness } from '@ionic-native/brightness/ngx';
 
 import { DynamicFormsIonicUIModule } from "@ng-dynamic-forms/ui-ionic";
 import { DynamicFormsMaterialUIModule } from "@ng-dynamic-forms/ui-material";
@@ -52,6 +53,7 @@ import { PopupFormsComponent } from './popupforms/popupforms.component';
     File,
     HTTP,
     LocalNotifications,
+    Brightness,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]

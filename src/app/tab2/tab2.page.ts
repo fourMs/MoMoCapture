@@ -13,6 +13,7 @@ import { PowerManagement } from '@ionic-native/power-management/ngx';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { PopupComponent } from '../popup/popup.component';
 import { PopupFormsComponent } from '../popupforms/popupforms.component';
+import { Brightness } from '@ionic-native/brightness/ngx';
 
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -21,6 +22,7 @@ import * as JSZip from "jszip";
 import { saveAs } from 'file-saver';
 
 import { Router } from '@angular/router';
+import { Console } from 'console';
 
 customElements.define('popover-example-page', class ModalContent extends HTMLElement {
 	connectedCallback() {
@@ -132,6 +134,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	private router: Router,
   	private powerManagement: PowerManagement,
   	private localNotifications: LocalNotifications,
+	private brightness: Brightness,
   	public popoverController: PopoverController
   	) {  	
     let self = this;
@@ -150,32 +153,46 @@ export class Tab2Page implements OnInit, OnDestroy {
     let _window: any = window;
     if(_window.DeviceMotionEvent) {
     	this.hasDeviceMotion = true;
-    }
+    }	
   }
 
-  ngOnInit() {
-       this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
-       if(this.isIOSMotion) {
-       	 this.requestPermissionIOS(false);
-       }
-		this.platform.pause
-		.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
-		  this.zone.run(() => {
-		    if(this.captureOn === true && this.isIOS === true) {
-				this.stopCapture();
-				// Schedule a single notification
-				this.localNotifications.schedule({
-					id: 1,
-					title: 'The MusicLab app has stopped recording.',
-					text: 'Please resume recording if you are still participating in the experiment.',
-					foreground: true
-				});
-		    }
-		  });
+  ngOnInit() {	  
+	// this.brightness.getBrightness().then(bValue => {
+	//     console.log('Bright: ' + bValue);
+	//   }).catch((error) => {
+	//       alert("Brightness acquisition error!");
+	//       console.log("Brightness acquisition error: ",error);
+	//   });	
+	// if(this.captureOn){
+	// 	console.log("CAPTURE ON");
+	// 	this.stopCapture();
+	// }else{
+	// 	console.log("CAPTURE OFF");
+	// }
+	this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
+	if(this.isIOSMotion) {
+		this.requestPermissionIOS(false);
+	}
+	this.platform.pause
+	.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+		this.zone.run(() => {
+		if(this.captureOn === true && this.isIOS === true) {
+			this.stopCapture();
+			// Schedule a single notification
+			this.localNotifications.schedule({
+				id: 1,
+				title: 'The MusicLab app has stopped recording.',
+				text: 'Please resume recording if you are still participating in the experiment.',
+				foreground: true
+			});
+		}
 		});
+	});
   }
 
   ngOnDestroy() {
+	if(this.captureOn)
+		this.stopCapture();
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
@@ -382,7 +399,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 			 });
 		}, 
 		(error: PositionError) => console.log(error));
-
+		this.brightness.setBrightness(0);
 	 }
 
 	stopCapture() {
@@ -400,6 +417,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 		  this.backgroundMode.disable();
 		}
 	  this.sendFileHttp();
+	  this.brightness.setBrightness(-1);
 	}
 
 	moveToBackground(e: any) {

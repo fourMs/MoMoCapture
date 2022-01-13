@@ -24,6 +24,7 @@
     "@angular/router": "~8.2.14",
     "@ionic-native/background-fetch": "^5.36.0",
     "@ionic-native/background-mode": "^5.23.0",
+    "@ionic-native/brightness": "^5.36.0",
     "@ionic-native/core": "^5.0.0",
     "@ionic-native/device-motion": "^5.36.0",
     "@ionic-native/file": "^5.22.0",
@@ -123,7 +124,8 @@
       "cordova-plugin-androidx": {},
       "cordova-plugin-androidx-adapter": {},
       "cordova-plugin-device-motion": {},
-      "cordova-plugin-background-fetch": {}
+      "cordova-plugin-background-fetch": {},
+      "cordova-plugin-brightness": {}
     },
     "platforms": [
       "android",

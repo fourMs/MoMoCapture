@@ -3,7 +3,7 @@
     <name>MusicLab</name>
     <description>Data collection for MusicLab</description>
     <author email="augusto@gemeos.org" href="https://github.com/gutosantos82/">Augusto Dias</author>
-    <content src="index.html" />
+    <content original-src="index.html" src="http://localhost:8100" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -117,4 +117,5 @@
     <plugin name="at.gofg.sportscomputer.powermanagement" spec="https://github.com/Viras-/cordova-plugin-powermanagement.git" />
     <engine name="android" spec="^8.0.0" />
     <engine name="ios" spec="^5.1.1" />
+    <allow-navigation href="http://localhost:8100" sessionid="c7b601bb" />
 </widget>
