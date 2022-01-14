@@ -120,6 +120,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	isIOS13: boolean = false;
 	isIOSMotion: boolean = false;
 	dataUploadTimer: number = 0.0;
+	zeroBrightnesss: number = 0.0001;//it should not be zero for iOS, some bug does not allow to come back to normal brightness when it is zero
 
   constructor(
   	private zone: NgZone,
@@ -153,22 +154,10 @@ export class Tab2Page implements OnInit, OnDestroy {
     let _window: any = window;
     if(_window.DeviceMotionEvent) {
     	this.hasDeviceMotion = true;
-    }	
+    }
   }
 
   ngOnInit() {	  
-	// this.brightness.getBrightness().then(bValue => {
-	//     console.log('Bright: ' + bValue);
-	//   }).catch((error) => {
-	//       alert("Brightness acquisition error!");
-	//       console.log("Brightness acquisition error: ",error);
-	//   });	
-	// if(this.captureOn){
-	// 	console.log("CAPTURE ON");
-	// 	this.stopCapture();
-	// }else{
-	// 	console.log("CAPTURE OFF");
-	// }
 	this.isIOSMotion = ((/iPad|iPhone|iPod/.test(navigator.userAgent)) && (typeof (DeviceMotionEvent as any).requestPermission === 'function'));
 	if(this.isIOSMotion) {
 		this.requestPermissionIOS(false);
@@ -185,6 +174,23 @@ export class Tab2Page implements OnInit, OnDestroy {
 				text: 'Please resume recording if you are still participating in the experiment.',
 				foreground: true
 			});
+		}
+		});
+	});
+	this.platform.resume
+	.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+		this.zone.run(() => {
+		if(this.isIOS === true) {
+			this.brightness.getBrightness().then(bValue => {
+				if((bValue < this.zeroBrightnesss + 0.001)){//Whn resume it should not be zero brightness
+					this.brightness.setBrightness(this.zeroBrightnesss);//Hack to make the brightness actually change
+					this.brightness.setBrightness(this.sessionData.brightness);
+					//console.log("resume: " + this.sessionData.brightness);
+				}
+			  }).catch((error) => {
+				  alert("Brightness acquisition error!");
+				  console.log("Brightness acquisition error: ",error);
+			  });	
 		}
 		});
 	});
@@ -399,25 +405,30 @@ export class Tab2Page implements OnInit, OnDestroy {
 			 });
 		}, 
 		(error: PositionError) => console.log(error));
-		this.brightness.setBrightness(0);
+		this.brightness.setBrightness(this.zeroBrightnesss);
 	 }
 
 	stopCapture() {
-	  //window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
-	  if(this.hasDeviceMotion) {
-	    window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
-	  }
-	  if(this.isIOS13) {
-	    window.removeEventListener("deviceorientation", this.docEvtDevOrient, false);
-	  }
-	  this.geoSubscription.unsubscribe();
-	  this.turnOffWakeLock();
-	  this.captureOn = false;
-	  if (this.platform.is('cordova')) {
-		  this.backgroundMode.disable();
+		if(this.isIOS){
+			//console.log("Bright on Stop: " + this.sessionData.brightness);
+			this.brightness.setBrightness(this.sessionData.brightness);
 		}
-	  this.sendFileHttp();
-	  this.brightness.setBrightness(-1);
+		else
+			this.brightness.setBrightness(-1);
+		//window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
+		if(this.hasDeviceMotion) {
+			window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
+		}
+		if(this.isIOS13) {
+			window.removeEventListener("deviceorientation", this.docEvtDevOrient, false);
+		}
+		this.geoSubscription.unsubscribe();
+		this.turnOffWakeLock();
+		this.captureOn = false;
+		if (this.platform.is('cordova')) {
+			this.backgroundMode.disable();
+		}
+		this.sendFileHttp();
 	}
 
 	moveToBackground(e: any) {

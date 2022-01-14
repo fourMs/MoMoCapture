@@ -29,6 +29,8 @@ export class SessionDataService {
 
   public currentPopover: any = null;
 
+  public brightness: number = -1;
+
   constructor(
   ) {
   }

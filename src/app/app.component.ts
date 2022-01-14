@@ -9,6 +9,7 @@ import { SessionDataService } from './providers/sessionData.service';
 import { BackgroundMode } from '@ionic-native/background-mode/ngx';
 import { HTTP } from '@ionic-native/http/ngx';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Brightness } from '@ionic-native/brightness/ngx';
 
 type requestMethod = "head" | "get" | "post" | "put" | "patch" | "delete" | "options" | "upload" | "download";
 
@@ -28,7 +29,8 @@ export class AppComponent {
     private backgroundMode: BackgroundMode,
     public http: HttpClient,
     private httpNative: HTTP,
-    private router: Router
+    private router: Router,
+    private brightness: Brightness
   ) {
     this.initializeApp();
   }
@@ -88,7 +90,13 @@ export class AppComponent {
       } else {
         this.loadFormsID(false);
       }
-
+      this.brightness.getBrightness().then(bValue => {
+        this.sessionData.brightness = bValue;
+        //console.log('BrightXApp: ' + bValue);
+      }).catch((error) => {
+          alert("Brightness acquisition error!");
+          console.log("Brightness acquisition error: ",error);
+      });
 
     });
   }
