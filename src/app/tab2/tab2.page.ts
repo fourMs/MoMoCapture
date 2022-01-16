@@ -57,14 +57,14 @@ export interface RotationType {
 }
 
 export interface GeolocationType {
-  timestamp: number;
+  timestamp: string;
   latitude: number;
   longitude: number;
   accuracy: number;
 }
 
 export interface DeviceMotionType {
-  timestamp: number;
+  timestamp: string;
   time: number;
   x: number;
   y: number;
@@ -75,7 +75,7 @@ export interface DeviceMotionType {
 }
 
 export interface DeviceOrientationType {
-  timestamp: number;
+  timestamp: string;
   time: number;
   alpha: number;
   beta: number;
@@ -103,7 +103,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	acc: AccelerationType = {x:0, y:0, z:0};
 	rot: RotationType = {alpha:0, beta:0, gamma:0};
 	general: GeneralInfoType = {time:0, timestamp:0};
-	geo: GeolocationType = {timestamp:0, latitude:0, longitude:0, accuracy:0};
+	geo: GeolocationType = {timestamp:"", latitude:0, longitude:0, accuracy:0};
 	readFrequency: number;
 	dateStart: Date;
 	countMotionReading: number;
@@ -115,7 +115,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	hasGeolocation: boolean = false;
 	deviceMotionList: DeviceMotionType[] = [];
 	geolocationList: GeolocationType[] = [];
-        deviceOrientationList: DeviceOrientationType[] = [];
+    deviceOrientationList: DeviceOrientationType[] = [];
 	isIOS: boolean = false;
 	isIOS13: boolean = false;
 	isIOSMotion: boolean = false;
@@ -261,10 +261,10 @@ export class Tab2Page implements OnInit, OnDestroy {
 		});
 	}
 
-        processOrientationEvent(event: DeviceOrientationEvent) {
+    processOrientationEvent(event: DeviceOrientationEvent) {
 		this.zone.run(() => {
 
-		   var currentTime: number = new Date().getTime();
+		   var currentTime: string = new Date().toISOString();
 		   this.countOrientationReading++;
 
 	  	if(event && event.alpha) {
@@ -275,20 +275,21 @@ export class Tab2Page implements OnInit, OnDestroy {
 
 	  	this.deviceOrientationList.push({
 	  			timestamp: currentTime,
-	  		        time: event.timeStamp,
+	  		    time: event.timeStamp,
 				alpha: event.alpha,
 				beta: event.beta,
 				gamma: event.gamma
 	  		});
 
 		});       
-        }
+    }
 
 	processEvent(event: DeviceMotionEvent) {
 //	  console.log(event);
 		this.zone.run(() => {
-
-		var currentTime: number = new Date().getTime();
+		
+		var currentDate = new Date();
+		var currentTime: number = currentDate.getTime();
 		var timeDiff: number = currentTime - this.dateStart.getTime();
 		this.countMotionReading++;
 	    this.readFrequency = parseFloat((1000 * this.countMotionReading / (timeDiff)).toFixed(4));
@@ -334,7 +335,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 		}
 
 	  	this.deviceMotionList.push({
-	  			timestamp: currentTime,
+	  			timestamp: currentDate.toISOString(),
 	  		    time: event.timeStamp,
 				x: x,
 				y: y,
@@ -396,9 +397,10 @@ export class Tab2Page implements OnInit, OnDestroy {
 			 this.geo.latitude = parseFloat(data.coords.latitude.toFixed(4));
 			 this.geo.longitude = parseFloat(data.coords.longitude.toFixed(4));
 			 this.geo.accuracy = data.coords.accuracy;
-			 this.geo.timestamp = data.timestamp;
+			 var currentDate = new Date();
+			 this.geo.timestamp = currentDate.toISOString();
 			 this.geolocationList.push({
-				 timestamp: data.timestamp,
+				 timestamp: this.geo.timestamp,
 				 latitude: data.coords.latitude,
 				 longitude: data.coords.longitude,
 				 accuracy: data.coords.accuracy
@@ -461,12 +463,13 @@ export class Tab2Page implements OnInit, OnDestroy {
 	}
 
 	private async sendFileHttp(alertWhenSucess = true){
+	   var isoDate = new Date().toISOString().replace(/:/g, "-");
 	   var zip = new JSZip();
-	    zip.file(this.sessionData.uuid + '.deviceMotion.csv', this.arrayToCSV(this.deviceMotionList));
+	    zip.file(isoDate + '_' + this.sessionData.uuid + '_dm.csv', this.arrayToCSV(this.deviceMotionList));
 	    if(this.geolocationList.length > 0)
-	    	zip.file(this.sessionData.uuid +  '.geoLocation.csv', this.arrayToCSV(this.geolocationList));
+	    	zip.file(isoDate + '_' + this.sessionData.uuid +  '_gl.csv', this.arrayToCSV(this.geolocationList));
 	    if(this.isIOS13 && this.deviceOrientationList.length > 0) {
-                zip.file(this.sessionData.uuid +  '.deviceOrientation.csv', this.arrayToCSV(this.deviceOrientationList));
+                zip.file(isoDate + '_' + this.sessionData.uuid +  '_do.csv', this.arrayToCSV(this.deviceOrientationList));
 	     }
 
 		var zipfile = await zip.generateAsync({ type: "blob" });
