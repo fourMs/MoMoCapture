@@ -3,7 +3,7 @@
     <name>MusicLab</name>
     <description>Data collection for MusicLab</description>
     <author email="augusto@gemeos.org" href="https://github.com/gutosantos82/">Augusto Dias</author>
-    <content original-src="index.html" src="http://localhost:8100" />
+    <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
