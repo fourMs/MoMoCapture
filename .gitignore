@@ -4,6 +4,7 @@
 *.log
 *.aab
 *.apk
+*.idsig
 node_modules/
 platforms/
 plugins/
