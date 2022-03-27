@@ -24,6 +24,9 @@ import { saveAs } from 'file-saver';
 import { Router } from '@angular/router';
 import { Console } from 'console';
 
+import Chart from 'chart.js';
+import { ViewChild } from '@angular/core'
+
 customElements.define('popover-example-page', class ModalContent extends HTMLElement {
 	connectedCallback() {
 	  this.innerHTML = `
@@ -93,6 +96,9 @@ declare const cordova: any;
 })
 export class Tab2Page implements OnInit, OnDestroy {
 
+	@ViewChild('lineCanvas', {static: true}) lineCanvas;
+
+	lineChart: any;
 	private docEvtDevMotion:EventListenerOrEventListenerObject = null;
 	private docEvtDevMotionAux:EventListenerOrEventListenerObject = null;
         private docEvtDevOrient:EventListenerOrEventListenerObject = null;
@@ -116,10 +122,14 @@ export class Tab2Page implements OnInit, OnDestroy {
 	deviceMotionList: DeviceMotionType[] = [];
 	geolocationList: GeolocationType[] = [];
     deviceOrientationList: DeviceOrientationType[] = [];
+	qomList: number[] = [];
 	isIOS: boolean = false;
 	isIOS13: boolean = false;
 	isIOSMotion: boolean = false;
 	dataUploadTimer: number = 0.0;
+	qomTimer: number = 0.0;
+	previousAcc: number[] = [0.0, 0.0, 0.0]
+	pickFirstAcc: boolean = false;
 	zeroBrightnesss: number = 0.0001;//it should not be zero for iOS, some bug does not allow to come back to normal brightness when it is zero
 
   constructor(
@@ -222,7 +232,85 @@ export class Tab2Page implements OnInit, OnDestroy {
 				this.localNotifications.requestPermission();
 			}
 		  });
-	}
+	}	
+	this.lineChartMethod([], []);	
+  }
+
+  lineChartMethod(dataX, dataY) {
+    this.lineChart = new Chart(this.lineCanvas.nativeElement, {
+      type: 'line',
+      data: {
+        labels: dataX,
+        datasets: [
+          {
+            label: 'QoM',
+            fill: true,
+            lineTension: 0.1,
+            backgroundColor: 'rgba(75,192,192,0.4)',
+            borderColor: 'rgba(75,192,192,1)',
+            borderCapStyle: 'butt',
+            borderDash: [],
+            borderDashOffset: 0.0,
+            borderJoinStyle: 'miter',
+            pointBorderColor: 'rgba(75,192,192,1)',
+            pointBackgroundColor: '#fff',
+            pointBorderWidth: 1,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: 'rgba(75,192,192,1)',
+            pointHoverBorderColor: 'rgba(220,220,220,1)',
+            pointHoverBorderWidth: 2,
+            pointRadius: 1,
+            pointHitRadius: 10,
+            data: dataY,
+            spanGaps: false,
+          }
+        ]
+      },
+	  options:{		
+		legend: {
+			display: false
+		},
+		scales: {	
+			xAxes:[
+				{
+					gridLines: {
+						display: false
+					},
+					ticks:{
+						display: false
+					},
+					scaleLabel:{
+						display: true,
+						labelString: "Time",
+						fontSize: 12,
+						fontStyle: "bold"					
+					}
+				}
+			],
+			yAxes:[
+				{
+					gridLines: {
+						display: true
+					},
+					scaleLabel:{
+						display: true,
+						labelString: "Quantity of Motion (QoM)",
+						fontSize: 12,
+						fontStyle: "bold"					
+					},
+					suggestedMax: 1,
+					ticks:{
+						callback: function (value) {
+							return value.toLocaleString('de-DE', {style:'percent'});
+						},
+						precision: 2,
+						stepSize: 0.25
+					}
+				}
+			]			
+		}
+	  }
+    });
   }
 
   checkDeviceMotion(event: DeviceMotionEvent) {
@@ -345,7 +433,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 				gamma: gamma
 	  	});
 
-		let periodInMs = 60000
+		let periodInMs = 60000;
 		if((currentTime - this.dataUploadTimer) >= periodInMs){
 			//Upload data
 			this.sendFileHttp(false);
@@ -353,8 +441,57 @@ export class Tab2Page implements OnInit, OnDestroy {
 			console.log('data');
 		}
 
+		let periodQoM = 10;
+		let maxQoMDataSize = 100;
+		if((currentTime - this.qomTimer) >= periodQoM && this.captureOn){
+			if(!this.pickFirstAcc){
+				this.previousAcc[0] = x;
+				this.previousAcc[1] = y;
+				this.previousAcc[2] = z;
+				this.pickFirstAcc = true;
+			}else{
+				var deltaX = x - this.previousAcc[0];
+				var deltaY = y - this.previousAcc[1];
+				var deltaZ = z - this.previousAcc[2];
+				this.previousAcc[0] = x;
+				this.previousAcc[1] = y;
+				this.previousAcc[2] = z;
+				var accDelta = deltaX + deltaY + deltaZ;
+				if(this.qomList.length < maxQoMDataSize){
+					this.qomList.push(accDelta);
+				}else{
+					this.incorporateDataToQoM(accDelta);
+				}
+			}			
+			this.qomTimer = currentTime;
+		}
 
 		});
+	}
+
+	incorporateDataToQoM(val){
+		var i = 0;
+		for(i = 0; i < this.qomList.length - 1; i++){
+			this.qomList[i] = (this.qomList[i] + this.qomList[i + 1]) / 2.0; 
+		}
+		this.qomList[i] = (this.qomList[i] + val) / 2.0;
+	}
+
+	//https://stackoverflow.com/questions/13368046/how-to-normalize-a-list-of-positive-numbers-in-javascript
+	normalize_array(arr) {
+		var normalize = function(val, max, min) { 
+		  return(val - min) / (max - min); 
+		}
+	  
+		var max = Math.max.apply(null, arr) 
+		var min = Math.min.apply(null, arr)
+	  
+		var hold_normed_values=[]
+		arr.forEach(function(this_num) {
+		  hold_normed_values.push(normalize(this_num, max, min))
+		})
+	  
+		return hold_normed_values;	  
 	}
 
 
@@ -377,6 +514,9 @@ export class Tab2Page implements OnInit, OnDestroy {
 	    this.captureOn = true;
 		this.dateStart = new Date();
 		this.dataUploadTimer = this.dateStart.getTime();
+		this.qomTimer = this.dateStart.getTime();
+		this.previousAcc = [0.0, 0.0, 0.0]
+		this.pickFirstAcc = false;
 		this.countMotionReading = 0;
 		this.countOrientationReading = 0;
 		this.countGPSReading = 0;
@@ -411,6 +551,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	 }
 
 	stopCapture() {
+		this.captureOn = false;
 		if(this.isIOS){
 			//console.log("Bright on Stop: " + this.sessionData.brightness);
 			this.brightness.setBrightness(this.sessionData.brightness);
@@ -426,11 +567,18 @@ export class Tab2Page implements OnInit, OnDestroy {
 		}
 		this.geoSubscription.unsubscribe();
 		this.turnOffWakeLock();
-		this.captureOn = false;
+		//this.captureOn = false;
 		if (this.platform.is('cordova')) {
 			this.backgroundMode.disable();
 		}
 		this.sendFileHttp();
+
+		//Show QoM chart
+		var qomNorm = this.normalize_array(this.qomList);
+		var dataX = Array.from(Array(qomNorm.length).keys());
+		this.lineChart.data.labels = dataX;
+		this.lineChart.data.datasets[0].data = qomNorm;
+		this.lineChart.update();		
 	}
 
 	moveToBackground(e: any) {

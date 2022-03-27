@@ -42,6 +42,7 @@
     "angular2-text-mask": "^9.0.0",
     "angular2-uuid": "^1.1.1",
     "at.gofg.sportscomputer.powermanagement": "https://github.com/Viras-/cordova-plugin-powermanagement.git",
+    "chart.js": "^2.9.4",
     "cordova-android": "^8.0.0",
     "cordova-ios": "^5.1.1",
     "cordova-plugin-advanced-http": "^2.4.1",

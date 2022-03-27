@@ -108,6 +108,20 @@
 	    </ion-col>
 	  </ion-row>
 
+	  <ion-row responsive-sm [hidden]="captureOn">
+	    <ion-col>
+			<ion-card class="welcome-card">
+			  <ion-card-header>				
+				<ion-card-title>Quantity of Motion</ion-card-title>
+				<ion-card-subtitle>Results from last session</ion-card-subtitle>
+			  </ion-card-header>
+			  <ion-card-content>
+				<canvas #lineCanvas ></canvas>
+			  </ion-card-content>
+			</ion-card>
+	    </ion-col>
+	  </ion-row>
+
 	</ion-list>
 
 </ion-content>
