@@ -130,7 +130,7 @@ export class Tab2Page implements OnInit, OnDestroy {
 	qomTimer: number = 0.0;
 	previousAcc: number[] = [0.0, 0.0, 0.0]
 	pickFirstAcc: boolean = false;
-	zeroBrightnesss: number = 0.0001;//it should not be zero for iOS, some bug does not allow to come back to normal brightness when it is zero
+	zeroBrightnesss: number = 0.15;//it should not be zero for iOS (maybe 0.0001), some bug does not allow to come back to normal brightness when it is zero
 
   constructor(
   	private zone: NgZone,
