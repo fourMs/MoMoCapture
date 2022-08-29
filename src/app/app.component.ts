@@ -107,6 +107,18 @@ export class AppComponent {
         var thisMethod: requestMethod = 'get';
         var options = { method: thisMethod };
 
+        this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema_multi.txt', options).then(
+            (response) => {
+              let data = JSON.parse(response.data);           
+              for(let form of Object.values(data))
+                 this.sessionData.formsMeta.push(form);
+              this.loadFormsContent(null, this.sessionData.formsMeta); 
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + data  + "\n" ;
+            },
+            (err) => {
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
+          }); 
+
         this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema.txt', options).then(
             (response) => {
               let data = JSON.parse(response.data);
@@ -141,30 +153,23 @@ export class AppComponent {
             'Access-Control-Allow-Origin': '*'
           })
         };
-        this.http.get('assets/data/musiclab_app_nettskjema.txt').subscribe(
-            response => {
-              this.sessionData.preFormId = response[0];
-              this.sessionData.postFormId = response[1];
-              this.sessionData.consentFormId = response[2];
-              this.sessionData.withdrawFormId = response[3];
-              this.loadFormsContent(response, null); 
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
-            },
-            error => {
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + error.status + "\n" + error.error  + "\n" ;
-            }
-          );
-        this.http.get('assets/data/musiclab_app_nettskjema_multi.txt').subscribe(
-            response => {
-              for(let form of Object.values(response))
-                 this.sessionData.formsMeta.push(form);
-              this.loadFormsContent(null, this.sessionData.formsMeta); 
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
-            },
-            error => {
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + error.status + "\n" + error.error  + "\n" ;
-            }
-          );
+
+        this.http.get('assets/data/musiclab_app_nettskjema_all.json').subscribe(
+          response => {
+            let data : any = response;
+            this.sessionData.dataFormId = data.Data.id;
+            this.sessionData.consentFormId = data.ConsentForm.id;
+            this.sessionData.withdrawFormId = data.WithdrawForm.id;
+            for(let form of Object.values(data.DynamicForms))
+              this.sessionData.formsMeta.push(form);
+            this.loadFormsContent([this.sessionData.consentFormId, this.sessionData.withdrawFormId], null); //load Fixed forms
+            this.loadFormsContent(null, this.sessionData.formsMeta);//load dynamic forms
+            this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
+          },
+          error => {
+            this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + error.status + "\n" + error.error  + "\n" ;
+          }
+        );
     }
   }
 
@@ -199,7 +204,7 @@ export class AppComponent {
 
     //Fixed forms
     if(formIds != null){
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < formIds.length; i++) {
         if (this.platform.is('cordova')) {
             var thisMethod: requestMethod = 'get';
             var options = { method: thisMethod };

@@ -14,6 +14,7 @@ export class SessionDataService {
 
   public consentGiven: boolean = null;
 
+  public dataFormId: number;
   public preFormId: number;
   public postFormId: number;
   public consentFormId: number;
