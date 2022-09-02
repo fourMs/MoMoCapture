@@ -20,6 +20,7 @@ export class SessionDataService {
   public consentFormId: number;
   public withdrawFormId: number;
 
+  public dataFormObject: any = null;
   public preFormObject: any = null;
   public postFormObject: any = null;
   public consentFormObject: any = null;

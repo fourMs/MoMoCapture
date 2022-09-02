@@ -622,16 +622,21 @@ export class Tab2Page implements OnInit, OnDestroy {
 
 		var zipfile = await zip.generateAsync({ type: "blob" });
 
+		//extract questions ID
+		var dataForm = this.sessionData.dataFormObject;//141510
+		var useridId =dataForm.form.pages[0].elements[0].questions[0].questionId;
+		var fileId = dataForm.form.pages[0].elements[1].questions[0].questionId;
+
 		const form = new cordova.plugin.http.ponyfills.FormData()
-		form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
-		form.append('answersAsMap[1996788].attachment.upload', zipfile, "data.zip");
+		form.append('answersAsMap['+useridId+'].textAnswer', this.sessionData.uuid);
+		form.append('answersAsMap['+fileId+'].attachment.upload', zipfile, "data.zip");
 		this.httpNative.setDataSerializer("multipart");
 		var thisMethod: requestMethod = 'post';
 		var options = { method: thisMethod, data: form };
 
-		this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";
+		this.sessionData.httpRequest += new Date().toLocaleString() + "\n" + JSON.stringify(options) + "\n";		
 
-		this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=141510', options).then(
+		this.httpNative.sendRequest('https://nettskjema.no/answer/deliver.json?formId=' + this.sessionData.dataFormId, options).then(
 			(response) => {
 					console.log(response.status);
 					console.log(JSON.parse(response.data)); // JSON data returned by server

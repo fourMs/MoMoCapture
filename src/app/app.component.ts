@@ -107,43 +107,23 @@ export class AppComponent {
         var thisMethod: requestMethod = 'get';
         var options = { method: thisMethod };
 
-        this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema_multi.txt', options).then(
+        //this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema_multi.txt', options).then(
+        this.httpNative.sendRequest('https://www.uio.no/ritmo/english/projects/musiclab/musiclab_app_nettskjema_all.json', options).then(
             (response) => {
-              let data = JSON.parse(response.data);           
-              for(let form of Object.values(data))
-                 this.sessionData.formsMeta.push(form);
-              this.loadFormsContent(null, this.sessionData.formsMeta); 
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + data  + "\n" ;
+              let data = JSON.parse(response.data);
+              this.sessionData.dataFormId = data.Data.id;
+              this.sessionData.consentFormId = data.ConsentForm.id;
+              this.sessionData.withdrawFormId = data.WithdrawForm.id;
+              for(let form of Object.values(data.DynamicForms))
+                this.sessionData.formsMeta.push(form);
+              this.loadFormsContent([this.sessionData.dataFormId, this.sessionData.consentFormId, this.sessionData.withdrawFormId], null); //load Fixed forms
+              this.loadFormsContent(null, this.sessionData.formsMeta);//load dynamic forms
+              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
             },
             (err) => {
               this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
           }); 
 
-        this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema.txt', options).then(
-            (response) => {
-              let data = JSON.parse(response.data);
-              this.sessionData.preFormId = data[0];
-              this.sessionData.postFormId = data[1];
-              this.sessionData.consentFormId = data[2];
-              this.sessionData.withdrawFormId = data[3];
-              this.loadFormsContent(data, null);
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response.status.toString() + "\n" + response.data  + "\n" ;
-            },
-            (err) => {
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
-          });   
-          
-          this.httpNative.sendRequest('https://www.uio.no/ritmo/english/news-and-events/events/musiclab/musiclab_app_nettskjema_multi.txt', options).then(
-            (response) => {
-              let data = JSON.parse(response.data);           
-              for(let form of Object.values(data))
-                 this.sessionData.formsMeta.push(form);
-              this.loadFormsContent(null, this.sessionData.formsMeta); 
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + data  + "\n" ;
-            },
-            (err) => {
-              this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + err.status + "\n" + err.error  + "\n" ;
-          }); 
     } else {
         this.sessionData.uuid = UUID.UUID();
 
@@ -162,7 +142,7 @@ export class AppComponent {
             this.sessionData.withdrawFormId = data.WithdrawForm.id;
             for(let form of Object.values(data.DynamicForms))
               this.sessionData.formsMeta.push(form);
-            this.loadFormsContent([this.sessionData.consentFormId, this.sessionData.withdrawFormId], null); //load Fixed forms
+            this.loadFormsContent([this.sessionData.dataFormId, this.sessionData.consentFormId, this.sessionData.withdrawFormId], null); //load Fixed forms
             this.loadFormsContent(null, this.sessionData.formsMeta);//load dynamic forms
             this.sessionData.httpResponse += new Date().toLocaleString() + "\n" + response  + "\n" ;
           },
@@ -178,6 +158,10 @@ export class AppComponent {
     function  assignFormContent(content:any){
       let myResponse = content;
       let formType = "none";
+      if(myResponse.form.formId == self.sessionData.dataFormId) {
+        self.sessionData.dataFormObject = myResponse;
+        formType = "data";
+      }
       if(myResponse.form.formId == self.sessionData.preFormId) {
         self.sessionData.preFormObject = myResponse;
         formType = "pre";
