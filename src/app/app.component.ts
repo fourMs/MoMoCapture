@@ -235,7 +235,7 @@ export class AppComponent {
                   if(data.form.formId == formsMeta[m].id)
                     this.sessionData.formsObjects[m] = data;
                 }
-                console.log(this.sessionData.formsObjects);
+                //console.log(this.sessionData.formsObjects);
                 this.sessionData.httpResponse += new Date().toLocaleString() + "\n All Forms load: ok\n";
               },
               (err) => {

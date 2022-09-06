@@ -12,6 +12,6 @@ ionic cordova build android
 #Use this new way, the other ones above are deprecated
 rm momocapture.apk
 ionic cordova build android --prod --release
-#Execute next lines in cmd
+#Execute next lines in cmd and open it in teh location of this repo
 "D:/Android/Sdk/build-tools/31.0.0/zipalign.exe" -f 4 platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk momocapture.apk
 "D:/Android/Sdk/build-tools/31.0.0/apksigner.bat" sign --ks ../momocapture.keystore --ks-pass file:../momocapture_pass.txt --v1-signing-enabled true --v2-signing-enabled true momocapture.apk

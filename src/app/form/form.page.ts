@@ -150,6 +150,7 @@ export class FormPage implements OnInit {
         type: question.type,
         id: question.questionId,
         required: question.mandatory,
+        description: question.description == null ? null: question.description.replaceAll('<p>', '').replaceAll('</p>', '').replaceAll('\n', ''),
         ...options,
       }})
     return {
@@ -249,6 +250,9 @@ export class FormPage implements OnInit {
       }
       if(question.required) {
         newModel.required = true;
+      }
+      if(question.description != null){
+        newModel.label += '\n<p> <em> <font size="2.5em" >' + question.description + ' </font> </em> </p>'
       }
       this.formModel.push(newModel); 
     }
