@@ -17,6 +17,7 @@ import {
     DynamicCheckboxGroupModel,
     DynamicRadioGroupModel,
     DynamicTextAreaModel,
+    DynamicSliderModel,
     AUTOCOMPLETE_OFF
 } from "@ng-dynamic-forms/core";
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
@@ -36,7 +37,8 @@ const fieldTypes = {
   'QUESTION_MULTILINE': 'text',
   'TEXT': 'html',
   'HEADING': 'head',
-  'IMAGE': 'image'
+  'IMAGE': 'image',
+  'LINEAR_SCALE': 'linear'
 }
 
 @Component({
@@ -145,6 +147,10 @@ export class FormPage implements OnInit {
           name: option.text,
         })),
       } : {}
+      const linearParams = question.type == "linear" ? {
+        max: question.maximumValue,
+        min: question.minimumValue,
+      } : {}
       return {
         name: question.text,
         type: question.type,
@@ -152,6 +158,7 @@ export class FormPage implements OnInit {
         required: question.mandatory,
         description: question.description == null ? null: question.description.replaceAll('<p>', '').replaceAll('</p>', '').replaceAll('\n', ''),
         ...options,
+        ...linearParams
       }})
     return {
       form: { id: answerJson.form.formId },
@@ -248,6 +255,16 @@ export class FormPage implements OnInit {
                 label: "<img src='https://nettskjema.no/image/" + question.name + "'>"
           });
       }
+      if(question.type == 'linear') {
+        newModel = new DynamicSliderModel({
+          id: "_"+question.id,
+          label: question.name,
+          max: question.max,
+          min: question.min,
+          step: 1,
+          vertical: false
+        });
+      }
       if(question.required) {
         newModel.required = true;
       }
@@ -317,6 +334,10 @@ export class FormPage implements OnInit {
             this.didWithdraw = true;
           }
         }
+      }
+      if(questionType == 'linear') {
+        if(this.formGroup.value[questionId] != null)
+          form.append('answersAsMap[' + id + '].textAnswer', this.formGroup.value[questionId]);
       }
     }
     //form.append('answersAsMap[1996787].textAnswer', this.sessionData.uuid);
