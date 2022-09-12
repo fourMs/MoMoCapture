@@ -21,7 +21,14 @@
 			<ion-col>
 
 				<form (ngSubmit)="onSubmit()" class="form-momo" *ngIf="showForm" [formGroup]="formGroup">
-				    <dynamic-material-form [group]="formGroup" [model]="formModel"></dynamic-material-form>
+				    <dynamic-material-form [group]="formGroup" [model]="formModel">
+						<ng-template modelType="SLIDER" align="START" let-min="min">        
+							<span class="text-small">{{ min }}</span>							
+						</ng-template>
+						<ng-template modelType="SLIDER" align="END" let-max="max">        
+							<span class="text-small">{{ max }}</span>						
+						</ng-template>
+					</dynamic-material-form>
 				    <ion-button *ngIf="showForm" [disabled]="!formGroup.valid || isSubmittingForm"  type="submit">Submit</ion-button>
 				</form>
 

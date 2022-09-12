@@ -262,7 +262,10 @@ export class FormPage implements OnInit {
           max: question.max,
           min: question.min,
           step: 1,
-          vertical: false
+          vertical: false,
+          additional:{
+            thumbLabel: true
+          }
         });
       }
       if(question.required) {
@@ -270,12 +273,17 @@ export class FormPage implements OnInit {
       }
       if(question.description != null){
         newModel.label += '\n<p> <em> <font size="2.5em" >' + question.description + ' </font> </em> </p>'
+      }else{
+        if(question.type == 'linear') {
+          newModel.label +=  '\n<br>';
+        }
       }
       this.formModel.push(newModel); 
     }
     this.formGroup = this.formService.createFormGroup(this.formModel);
     this.showForm = true;
     this.changeDetectorRef.detectChanges();
+    console.log(this.formModel);
   }
 
   decodeHtml(html) {
