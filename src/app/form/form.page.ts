@@ -282,8 +282,7 @@ export class FormPage implements OnInit {
     }
     this.formGroup = this.formService.createFormGroup(this.formModel);
     this.showForm = true;
-    this.changeDetectorRef.detectChanges();
-    console.log(this.formModel);
+    this.changeDetectorRef.detectChanges();    
   }
 
   decodeHtml(html) {
