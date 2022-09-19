@@ -90,13 +90,13 @@ export class AppComponent {
       } else {
         this.loadFormsID(false);
       }
-      this.brightness.getBrightness().then(bValue => {
-        this.sessionData.brightness = bValue;
-        //console.log('BrightXApp: ' + bValue);
-      }).catch((error) => {
-          alert("Brightness acquisition error!");
-          console.log("Brightness acquisition error: ",error);
-      });
+      // this.brightness.getBrightness().then(bValue => {
+      //   this.sessionData.brightness = bValue;
+      //   //console.log('BrightXApp: ' + bValue);
+      // }).catch((error) => {
+      //     alert("Brightness acquisition error!");
+      //     console.log("Brightness acquisition error: ",error);
+      // });
 
     });
   }

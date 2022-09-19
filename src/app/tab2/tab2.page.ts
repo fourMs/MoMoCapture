@@ -187,23 +187,23 @@ export class Tab2Page implements OnInit, OnDestroy {
 		}
 		});
 	});
-	this.platform.resume
-	.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
-		this.zone.run(() => {
-		if(this.isIOS === true) {
-			this.brightness.getBrightness().then(bValue => {
-				if((bValue < this.zeroBrightnesss + 0.001)){//Whn resume it should not be zero brightness
-					this.brightness.setBrightness(this.zeroBrightnesss);//Hack to make the brightness actually change
-					this.brightness.setBrightness(this.sessionData.brightness);
-					//console.log("resume: " + this.sessionData.brightness);
-				}
-			  }).catch((error) => {
-				  alert("Brightness acquisition error!");
-				  console.log("Brightness acquisition error: ",error);
-			  });	
-		}
-		});
-	});
+	// this.platform.resume
+	// .pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+	// 	this.zone.run(() => {
+	// 	if(this.isIOS === true) {
+	// 		this.brightness.getBrightness().then(bValue => {
+	// 			if((bValue < this.zeroBrightnesss + 0.001)){//Whn resume it should not be zero brightness
+	// 				this.brightness.setBrightness(this.zeroBrightnesss);//Hack to make the brightness actually change
+	// 				this.brightness.setBrightness(this.sessionData.brightness);
+	// 				//console.log("resume: " + this.sessionData.brightness);
+	// 			}
+	// 		  }).catch((error) => {
+	// 			  alert("Brightness acquisition error!");
+	// 			  console.log("Brightness acquisition error: ",error);
+	// 		  });	
+	// 	}
+	// 	});
+	// });
   }
 
   ngOnDestroy() {
@@ -547,17 +547,17 @@ export class Tab2Page implements OnInit, OnDestroy {
 			 });
 		}, 
 		(error: PositionError) => console.log(error));
-		this.brightness.setBrightness(this.zeroBrightnesss);
+		//this.brightness.setBrightness(this.zeroBrightnesss);
 	 }
 
 	stopCapture() {
 		this.captureOn = false;
-		if(this.isIOS){
-			//console.log("Bright on Stop: " + this.sessionData.brightness);
-			this.brightness.setBrightness(this.sessionData.brightness);
-		}
-		else
-			this.brightness.setBrightness(-1);
+		// if(this.isIOS){
+		// 	//console.log("Bright on Stop: " + this.sessionData.brightness);
+		// 	this.brightness.setBrightness(this.sessionData.brightness);
+		// }
+		// else
+		// 	this.brightness.setBrightness(-1);
 		//window.removeEventListener("devicemotion",this.processEvent.bind(this), true);	
 		if(this.hasDeviceMotion) {
 			window.removeEventListener("devicemotion", this.docEvtDevMotion, false);
