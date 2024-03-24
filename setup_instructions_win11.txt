@@ -1,0 +1,21 @@
+Dev Environment for Android (Tested in a Win 11 PC)
+
+-Install Java JDK https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html#license-lightbox
+
+-Install Android Studio for the SDK API 34
+
+-Install Gradle https://docs.gradle.org/current/userguide/installation.html
+
+-Install nvm https://heynode.com/tutorial/install-nodejs-locally-nvm/
+
+-Run the following commands (the last one must be run inside the root folder MoMoCapture):
+
+	nvm install 16.15.1 
+
+	nvm use 16.15.1 
+
+	npm install -g @ionic/cli
+
+	npm i -g cordova
+
+	npm install --legacy-peer-deps
