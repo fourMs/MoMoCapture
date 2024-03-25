@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="no.uio.mobileapps.musiclab" version="0.0.26" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="no.uio.mobileapps.musiclab" version="0.0.28" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MusicLab</name>
     <description>Data collection for MusicLab</description>
     <author email="augusto@gemeos.org" href="https://github.com/gutosantos82/">Augusto Dias</author>
@@ -27,15 +27,6 @@
         </edit-config>
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity" xmlns:android="http://schemas.android.com/apk/res/android">
             <activity android:exported="true" />
-        </edit-config>
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/service" xmlns:android="http://schemas.android.com/apk/res/android">
-            <service android:exported="true" />
-        </edit-config>
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/provider" xmlns:android="http://schemas.android.com/apk/res/android">
-            <provider android:exported="true" />
-        </edit-config>
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/receiver" xmlns:android="http://schemas.android.com/apk/res/android">
-            <receiver android:exported="true" />
         </edit-config>
         <resource-file src="resources/android/xml/network_security_config.xml" target="app/src/main/res/xml/network_security_config.xml" />
         <allow-intent href="market:*" />

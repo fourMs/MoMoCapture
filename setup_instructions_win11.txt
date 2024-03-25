@@ -19,3 +19,5 @@ Dev Environment for Android (Tested in a Win 11 PC)
 	npm i -g cordova
 
 	npm install --legacy-peer-deps
+	
+- To build and sign check the file 'publish1.sh' in the last part maeked as *** ( if you are from RITMO and are continuing developing, contact previous developers to get the keystore and the password files)

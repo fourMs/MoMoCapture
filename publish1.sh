@@ -14,6 +14,7 @@ ionic cordova build android
 #This line can executed in power shell or terminal (Win11)
 rm momocapture.apk
 #Execute next lines in cmd (NOT Power Shell) and open it in the location of this repo
+#IMPORTAN: You might need to delete the generated folder 'platforms' if the following line throw errors and execute again
 ionic cordova build android --prod --release
 # in [YOUR PATH HERE] put the right path for the Android SDK
 "[YOUR PATH HERE]/Android/Sdk/build-tools/34.0.0/zipalign.exe" -f 4 platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk momocapture.apk
